@@ -1,0 +1,1687 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>스킬 선택판</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: 워크플로 개요(뼈대~확장 단계, 코드/UI 두 갈래) → 단계별 상세(목적·입출력·도구) → 조합 → 빠른 찾기 → 부록(직무 플러그인) → 기준과 한계 */
+:root{
+  --bg:#F4F5F6; --surface:#FFFFFF; --ink:#1A1D21; --muted:#5D636B; --line:#DCE0E4;
+  --code:#0E6B58; --code-soft:#E2F0EB;
+  --ui:#9A2F6B; --ui-soft:#F5E5EE;
+  --deck:#8F6410; --deck-soft:#F6EEDC;
+  --accent:#2D3E8C; --accent-soft:#E6E9F6;
+  --warn:#A3471F; --ok:#2E7D4F; --cbg:#EEF0F3;
+  --f-body:"IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121417; --surface:#1A1E22; --ink:#E7EAED; --muted:#9BA3AC; --line:#2D333A;
+  --code:#4FC2A4; --code-soft:#1A3029; --ui:#E58BBE; --ui-soft:#3A2230; --deck:#E3B25C; --deck-soft:#33291A;
+  --accent:#9AAAF0; --accent-soft:#232A45; --warn:#E58A62; --ok:#73C893; --cbg:#23282E; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121417; --surface:#1A1E22; --ink:#E7EAED; --muted:#9BA3AC; --line:#2D333A;
+  --code:#4FC2A4; --code-soft:#1A3029; --ui:#E58BBE; --ui-soft:#3A2230; --deck:#E3B25C; --deck-soft:#33291A;
+  --accent:#9AAAF0; --accent-soft:#232A45; --warn:#E58A62; --ok:#73C893; --cbg:#23282E; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6}
+.wrap{max-width:1160px;margin:0 auto;padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:44px}
+h1,h2,h3{text-wrap:balance;margin:0;line-height:1.3}
+h1{font-size:clamp(28px,4vw,38px);font-weight:700;letter-spacing:-.01em}
+h2{font-size:22px;font-weight:700}
+h3{font-size:15px;font-weight:700}
+p{margin:0}
+.eyebrow{font-size:12px;letter-spacing:.08em;color:var(--accent);font-weight:700}
+.lead{color:var(--muted);max-width:72ch}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+header{display:flex;flex-direction:column;gap:12px}
+.src{font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 14px}
+section{display:flex;flex-direction:column;gap:16px}
+.sec-head{display:flex;flex-direction:column;gap:6px}
+.cmd{font-family:var(--f-mono);font-size:12.5px;display:inline-block;padding:1px 7px;border-radius:4px;white-space:nowrap;margin:1px 2px 1px 0;background:var(--accent-soft);color:var(--accent)}
+.lane-code .cmd,.cmd.c{background:var(--code-soft);color:var(--code)}
+.lane-ui .cmd,.cmd.u{background:var(--ui-soft);color:var(--ui)}
+.lt{font-size:12px;font-weight:700;border-radius:4px;padding:1px 7px;white-space:nowrap}
+.lt.c{color:var(--code);background:var(--code-soft)}
+.lt.u{color:var(--ui);background:var(--ui-soft)}
+
+/* 개요 */
+.flow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.fstep{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px;text-decoration:none;color:var(--ink);min-width:0}
+.fstep:hover{border-color:var(--accent)}
+.fstep.opt{border-style:dashed}
+.fstep .n{font-family:var(--f-mono);font-size:12px;color:var(--accent);font-weight:600}
+.fstep .t{font-weight:700}
+.fstep .ln{font-size:12.5px;display:flex;flex-direction:column;gap:2px;border-top:1px dashed var(--line);padding-top:6px}
+.fstep .ln span:first-child{color:var(--code)}
+.fstep .ln span:last-child{color:var(--ui)}
+@media (max-width:960px){.flow{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:520px){.flow{grid-template-columns:1fr}}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px;color:var(--muted);align-items:center}
+
+/* 단계 */
+.step{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:16px;scroll-margin-top:16px}
+.step-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
+.step-head .n{font-family:var(--f-mono);font-size:13px;color:var(--accent);font-weight:600}
+.pill{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:1px 9px;color:var(--muted)}
+.lanes{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+@media (max-width:900px){.lanes{grid-template-columns:1fr}}
+.lane{border-radius:8px;border:1px solid var(--line);display:flex;flex-direction:column;min-width:0}
+.lane-head{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.lane-code .lane-head{background:var(--code-soft)} .lane-ui .lane-head{background:var(--ui-soft)}
+.lane-head h3{font-size:14px}
+.lane-code .lane-head h3{color:var(--code)} .lane-ui .lane-head h3{color:var(--ui)}
+.lane-head .io{font-size:13px;color:var(--ink)}
+.lane-head .io b{color:var(--muted);font-weight:700;font-size:12px;margin-right:4px}
+.trow{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:4px;min-width:0}
+.trow:last-child{border-bottom:0}
+.trow .top{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px}
+.trow .nm{font-weight:700;font-size:14px}
+.trow .from{font-size:12px;color:var(--muted)}
+.trow .ds{font-size:13.5px;color:var(--muted)}
+.trow .flag{font-size:12.5px;color:var(--warn)}
+.cost{font-size:12px;font-weight:700;border-radius:999px;padding:0 7px}
+.cost.free{color:var(--ok);border:1px solid var(--ok)} .cost.paid{color:var(--warn);border:1px solid var(--warn)} .cost.mix{color:var(--muted);border:1px solid var(--line)}
+.code{display:flex;align-items:flex-start;gap:6px;background:var(--cbg);border-radius:6px;padding:6px 8px;min-width:0}
+.code code{font-family:var(--f-mono);font-size:12px;flex:1;min-width:0;overflow-wrap:anywhere;white-space:pre-wrap}
+.code button{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:4px;padding:1px 7px;cursor:pointer;flex-shrink:0}
+.vf{font-size:12px;color:var(--muted)}
+.note{font-size:14px;background:var(--bg);border-radius:6px;padding:10px 14px}
+.note.warn{background:transparent;border:1px solid var(--warn)}
+.note.warn b{color:var(--warn)}
+.grp{font-size:12px;font-weight:700;color:var(--muted);padding:8px 14px 0}
+
+/* 조합 */
+.combo{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.box ol,.box ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.box .why{color:var(--muted);font-size:14px}
+.box.warn{border-color:var(--warn)} .box.warn h3{color:var(--warn)}
+.flowline{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:13px}
+.flowline .ar{color:var(--muted)}
+
+/* 빠른 찾기 */
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.filters .lbl{font-size:12px;color:var(--muted);margin-right:2px}
+.filters button{font:inherit;font-size:13.5px;padding:5px 13px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.sits{display:flex;flex-direction:column;gap:8px}
+.g4{display:grid;grid-template-columns:110px minmax(0,1.2fr) minmax(0,1fr) minmax(0,1.4fr);gap:14px}
+.sit{align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px 16px}
+.sit .st{display:flex;flex-direction:column;gap:4px;align-items:flex-start;font-size:12px;color:var(--muted)}
+.sit .q{font-weight:700;font-size:14px}
+.sit .why{color:var(--muted);font-size:13.5px}
+.sit .tl{font-size:12px;color:var(--muted);display:block;margin-bottom:2px}
+.colhead{padding:0 20px;font-size:12px;color:var(--muted)}
+.count{font-size:13px;color:var(--muted)}
+@media (max-width:760px){.sit.g4{grid-template-columns:1fr;gap:4px}.colhead{display:none}}
+
+/* 부록 */
+.plugs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.plug{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;font-size:13.5px;min-width:0}
+.plug b{font-size:14px}
+.plug .use{color:var(--muted)}
+.honest{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.honest div{font-size:14px;display:flex;flex-direction:column;gap:4px}
+footer{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:8px}
+footer ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:2px}
+.lt.t{color:var(--accent);background:var(--accent-soft)}
+.file{font-family:var(--f-mono);font-size:12px;padding:1px 6px;border-radius:4px;background:var(--surface);border:1px solid var(--line);color:var(--ink);white-space:nowrap;display:inline-block}
+
+/* 메인 스윔레인 */
+.swim{display:flex;flex-direction:column;gap:10px}
+.sw-head,.sw-row{display:grid;grid-template-columns:150px repeat(3,minmax(0,1fr));gap:8px}
+.sw-head span{font-size:12px;font-weight:700;padding:0 6px}
+.sw-head .c{color:var(--code)} .sw-head .t{color:var(--accent);text-align:center} .sw-head .u{color:var(--ui)}
+.sw-row{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px;scroll-margin-top:16px}
+.sw-row.opt{border-style:dashed}
+.sw-lab{display:flex;flex-direction:column;gap:4px;padding:4px}
+.sw-lab .n{font-family:var(--f-mono);font-size:12px;color:var(--accent);font-weight:600}
+.sw-lab b{font-size:16px;line-height:1.3}
+.sw-lab .mode{font-size:12px;font-weight:700;border-radius:4px;padding:1px 7px;background:var(--bg);align-self:flex-start}
+.sw-lab .tolink{font-size:12.5px;margin-top:auto;padding-top:6px}
+.cell{border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-width:0;font-size:13.5px}
+.cell.c{background:var(--code-soft)} .cell.t{background:var(--accent-soft)} .cell.u{background:var(--ui-soft)}
+.cell.empty{background:transparent;border:1px dashed var(--line);color:var(--muted);justify-content:center;align-items:center;font-size:12.5px}
+.cell ul{margin:0;padding-left:16px;display:flex;flex-direction:column;gap:3px}
+.cell .cl{display:none;font-size:12px;font-weight:700}
+.cell.c .cl{color:var(--code)} .cell.t .cl{color:var(--accent)} .cell.u .cl{color:var(--ui)}
+.cell .cmd{background:var(--surface)}
+.chips,.files{display:flex;flex-wrap:wrap;gap:4px}
+.gate{grid-column:1/-1;font-size:13px;color:var(--muted);border-top:1px dashed var(--line);padding:8px 4px 0}
+.gate b{color:var(--ink);margin-right:6px;font-size:12px}
+@media (max-width:860px){.sw-head{display:none}.sw-row{grid-template-columns:1fr}.cell .cl{display:block}.cell.empty{display:none}.sw-lab{flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:4px 10px}.sw-lab .tolink{margin-top:0;padding-top:0;margin-left:auto}}
+
+/* 파일 트리 */
+.treebox{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.tree{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.node{display:grid;grid-template-columns:minmax(0,280px) minmax(0,190px) minmax(0,1fr);gap:4px 12px;align-items:baseline;padding:6px 6px 6px calc(6px + var(--d)*20px);border-bottom:1px solid var(--line);border-radius:4px}
+.node:last-child{border-bottom:0}
+.fn{font-family:var(--f-mono);font-size:13px;font-weight:600;overflow-wrap:anywhere}
+.node.dir .fn{color:var(--muted)}
+.node .fn::before{content:"└ ";color:var(--line)}
+.node[style*="--d:0"] .fn::before{content:""}
+.bd{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.sb{font-family:var(--f-mono);font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 5px}
+.prop{font-size:12px;color:var(--warn);border:1px solid var(--warn);border-radius:4px;padding:0 5px}
+.new{font-size:12px;font-weight:700;color:var(--surface);background:var(--accent);border-radius:4px;padding:0 6px}
+.mod{font-size:12px;font-weight:700;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:0 6px}
+.dsc{font-size:13px;color:var(--muted)}
+.dsc i{font-style:normal;color:var(--ink)}
+.node.future{opacity:.3}
+.node.now{background:var(--accent-soft)}
+@media (max-width:760px){.node{grid-template-columns:1fr;gap:2px}}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:13.5px}
+th,td{padding:10px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+thead th{font-size:12px;color:var(--muted);background:var(--bg)}
+tbody tr:last-child td{border-bottom:0}
+.tpl{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:10px;align-items:start}
+details.tp{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;min-width:0}
+details.tp summary{cursor:pointer;font-family:var(--f-mono);font-size:13px;font-weight:600}
+details.tp summary span{font-family:var(--f-body);font-weight:400;color:var(--muted);margin-left:6px}
+details.tp pre{margin:10px 0 0;background:var(--cbg);border-radius:6px;padding:10px 12px;overflow-x:auto;font-family:var(--f-mono);font-size:12px;line-height:1.55;white-space:pre}
+details.step{display:block}
+details.step>summary{list-style:none;cursor:pointer}
+details.step>summary::-webkit-details-marker{display:none}
+details.step>summary .more{margin-left:auto;font-size:13px;color:var(--accent)}
+details.step>summary .more::after{content:" ▼"}
+details.step[open]>summary .more::after{content:" ▲"}
+details.step[open]>:not(summary){margin-top:16px}
+section > h3{margin-top:8px}
+.ctxbox .ctx{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:8px 16px}
+.ctxbox .ctx li{display:flex;flex-direction:column;gap:2px;font-size:13.5px}
+.ctxbox .ctx li .cmd{align-self:flex-start}
+.mdbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.mdbar input{font:inherit;font-size:14px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);flex:1 1 260px;min-width:0}
+.mdbar input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.mdgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,360px),1fr));gap:10px;align-items:start}
+.mdc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.mdh{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.mdh .fn{font-family:var(--f-mono);font-size:13.5px;font-weight:600;margin-right:auto;overflow-wrap:anywhere}
+.mdc dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 10px;margin:0;font-size:13px}
+.mdc dt{color:var(--muted);font-size:12px}
+.mdc dd{margin:0}
+.treewrap{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.treewrap>summary{cursor:pointer;font-weight:700}
+.treewrap[open]>.treebox{margin-top:12px;border:0;padding:0}
+.dec{font-size:12px;font-weight:700;border:1px solid var(--line);border-radius:4px;padding:0 6px;white-space:nowrap}
+#trimlog td:first-child,#trimlog td:nth-child(2){white-space:nowrap}
+.track{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-width:560px}
+.track button{font:inherit;text-align:left;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);cursor:pointer;display:flex;flex-direction:column;line-height:1.35}
+.track button b{font-size:15px}
+.track button small{font-size:12px;color:var(--muted)}
+#tr-app[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+#tr-deck[aria-pressed="true"]{border-color:var(--deck);box-shadow:inset 0 0 0 1px var(--deck)}
+.deckintro{display:flex;flex-direction:column;gap:10px}
+.cell.p{background:var(--deck-soft)} .cell.p .cl{color:var(--deck)}
+.sw-row.deck .cell.p{grid-column:2/-1}
+.sw-head.deck .p{grid-column:2/-1;color:var(--deck);text-align:center}
+.choices{display:grid;grid-template-columns:minmax(0,max-content) auto 1fr;gap:6px 12px;align-items:center;background:var(--surface);border-radius:6px;padding:8px 12px}
+.choices .cw{font-size:13.5px}
+.choices .cw::after{content:" →";color:var(--muted)}
+.choices .cf{font-size:12.5px;font-weight:700;color:var(--deck)}
+.choices .cmd{justify-self:start}
+@media (max-width:520px){.choices{grid-template-columns:minmax(0,1fr) auto}.choices .cmd{grid-column:1/-1;justify-self:start;margin-bottom:4px}}
+.sw-more{grid-column:1/-1;min-width:0}
+.sw-more>summary{cursor:pointer;font-size:13.5px;font-weight:700;color:var(--accent);list-style:none;display:inline-flex;gap:6px;align-items:center;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+.sw-more>summary:hover{border-color:var(--accent)}
+.sw-more>summary::-webkit-details-marker{display:none}
+.sw-more>summary::before{content:"▸"}
+.sw-more[open]>summary::before{content:"▾"}
+.sw-more>summary .cnt{font-weight:400;color:var(--muted)}
+.sw-more[open]>:not(summary){margin-top:12px}
+@media (max-width:860px){.sw-row.deck .cell.p,.sw-head.deck .p{grid-column:auto}}
+.lt.p{color:var(--deck);background:var(--deck-soft)}
+.cmd.p,.lane-p .cmd{background:var(--deck-soft);color:var(--deck)}
+.lane-p .lane-head{background:var(--deck-soft)} .lane-p .lane-head h3{color:var(--deck)}
+.pick4{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+.pk{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--deck);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.pk .ab{font-family:var(--f-mono);font-size:12px;font-weight:600;color:var(--deck)}
+.pk .if{font-size:13.5px}
+.pk .pick{font-size:13px;color:var(--muted);border-top:1px dashed var(--line);padding-top:6px;margin-top:auto}
+.decktools{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:14px;align-items:start}
+
+/* 주제 탭 */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.tabbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px;margin-block:-24px -20px;border-bottom:1px solid var(--line)}
+.tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:thin;padding-bottom:2px}
+.tabs button{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-start;font:inherit;line-height:1.35;padding:8px 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);cursor:pointer;text-align:left}
+.tabs button:hover{border-color:var(--accent)}
+.tabs button b{font-size:14px}
+.tabs button small{font-size:12px;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tabs button[aria-selected="true"] small{color:inherit;opacity:.75}
+div.panel{display:flex;flex-direction:column;gap:44px}
+.panel[hidden],[hidden]{display:none!important}
+.panel{scroll-margin-top:96px}
+#slides td:first-child{white-space:nowrap}
+.pager{display:flex;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding-top:16px;margin-top:8px}
+.pager button{font:inherit;font-size:14px;padding:8px 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);cursor:pointer;max-width:48%;text-align:left}
+.pager button.next{margin-left:auto;text-align:right}
+.pager button small{display:block;font-size:12px;color:var(--muted)}
+@media (max-width:520px){.tabs button small{display:none}.tabs button{padding:7px 12px}}
+
+/* ---------- UX 개선 ---------- */
+.hd{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
+.hd h1{font-size:clamp(22px,3vw,28px)}
+.hd-meta{font-size:13px;color:var(--muted)}
+.empty{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:16px;border:1px dashed var(--line);border-radius:8px;color:var(--muted);font-size:14px}
+.empty button{font:inherit;font-size:14px;padding:8px 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);cursor:pointer}
+.flabel{flex-basis:100%;font-size:13px;font-weight:700}
+button.cmd{font-family:var(--f-mono);font-size:12.5px;border:1px solid transparent;cursor:pointer;line-height:1.5}
+button.cmd:hover{border-color:currentColor}
+button.cmd::after{content:" ›";opacity:.6}
+button.cmd .pktag{font-family:var(--f-body);font-size:10.5px;opacity:.75;margin-left:5px;font-weight:600}
+.packsel{align-items:center}
+.packsel .ps-l{font-size:13px;color:var(--muted);margin-right:2px}
+.ps-note{font-size:13px;color:var(--muted);margin:0}
+.fgroups{display:flex;flex-direction:column;gap:8px}
+.fg{background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.fg>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 16px;min-height:52px}
+.fg>summary::-webkit-details-marker{display:none}
+.fg>summary::before{content:"▸";color:var(--muted)}
+.fg[open]>summary::before{content:"▾"}
+.fg>summary b{font-size:16px;min-width:3.2em}
+.fg-h{color:var(--muted);font-size:14px;flex:1;min-width:0}
+.fg-c{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.fg-list{border-top:1px solid var(--line)}
+.fr{border-bottom:1px solid var(--line)}
+.fr:last-child{border-bottom:0}
+.fr>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,auto);gap:4px 16px;align-items:center;padding:10px 16px;min-height:48px}
+.fr>summary::-webkit-details-marker{display:none}
+.fr>summary:hover,.fg>summary:hover{background:var(--bg)}
+.fr .q{font-size:14.5px;font-weight:600}
+.fr-s{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);justify-content:flex-end;text-align:right}
+.fr[open]>summary{background:var(--bg)}
+.fr .sk{padding:4px 16px 16px}
+.sk{display:flex;flex-direction:column;gap:10px;min-width:0}
+.sk-why{font-size:14px;font-weight:600}
+.sk-desc{font-size:14px;color:var(--ink)}
+.sk-flag{font-size:13px;color:var(--warn)}
+.sk-sec{display:flex;flex-direction:column;gap:6px}
+.sk-k{font-size:12px;font-weight:700;color:var(--muted)}
+.sk-none{font-size:13px;color:var(--muted)}
+.sk-meta{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12.5px;color:var(--muted);align-items:center}
+.sk-go{font-size:14px;font-weight:700;align-self:flex-start}
+dialog#skdlg{border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);padding:0;width:min(520px,calc(100vw - 32px));max-height:min(80vh,720px)}
+dialog#skdlg::backdrop{background:rgba(10,12,16,.45)}
+.dlg-h{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface)}
+.dlg-h h3{font-family:var(--f-mono);font-size:15px;flex:1;overflow-wrap:anywhere}
+.dlg-x{font:inherit;font-size:14px;padding:8px 14px;min-height:44px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);cursor:pointer}
+#skdlg-b .sk{padding:14px 16px 18px}
+.ctxwrap .ctxbox{display:flex;flex-direction:column;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.subtabs{position:sticky;top:var(--subtop,0px);z-index:5;background:var(--bg);padding:6px 0;margin-top:-14px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.subtabs button{font:inherit;text-align:left;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);cursor:pointer;display:flex;flex-direction:column;line-height:1.35;min-width:0}
+.subtabs button b{font-size:15px}
+.subtabs button small{font-size:12px;color:var(--muted)}
+.subtabs button[aria-selected="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.subtabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mfpane{display:flex;flex-direction:column;gap:14px}
+.law-h{font-size:16px;margin:6px 0 0}
+.where{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:8px}
+.wh{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.wh .wq{font-weight:700;font-size:14px}
+.wh .wf{font-family:var(--f-mono);font-size:12.5px;color:var(--accent);background:var(--accent-soft);border-radius:4px;padding:1px 7px;align-self:flex-start;overflow-wrap:anywhere}
+.wh .wd{font-size:13.5px;color:var(--muted)}
+.law-d{font-size:13.5px;margin:0}
+.law-n{font-size:12.5px;color:var(--muted);margin:0}
+.law-list{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+#mf-tree .treebox{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+@media (max-width:520px){.subtabs{gap:6px}.subtabs button{padding:8px 6px;align-items:center;text-align:center;justify-content:center;min-height:44px}.subtabs button b{font-size:14px;white-space:nowrap;letter-spacing:-.02em}.subtabs button small{display:none}.subtabs .mf-long{display:none}}
+@media (max-width:720px){
+  .wrap{padding-block:16px calc(96px + env(safe-area-inset-bottom,0px));gap:28px}
+  .tabbar{position:fixed;left:0;right:0;bottom:0;top:auto;margin:0;z-index:20;border-top:1px solid var(--line);border-bottom:0;
+    padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+  .tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;overflow:visible;padding:0}
+  .tabs button{min-height:56px;align-items:center;justify-content:center;text-align:center;padding:6px 4px;border-radius:10px}
+  .tabs button b{font-size:13px;line-height:1.25;word-break:keep-all}
+  .tabs button small{display:none}
+  .pager{display:none}
+  .filters button{min-height:44px;padding:8px 16px}
+  .code button{min-height:44px;min-width:56px;font-size:13px}
+  .code{align-items:center}
+  .sw-more>summary,details.tp summary,.treewrap>summary,.empty button{min-height:44px;display:flex;align-items:center}
+  .mdbar input{min-height:44px}
+  button.cmd{min-height:32px;padding:4px 9px}
+  .fr>summary{grid-template-columns:1fr}
+  .fr-s{justify-content:flex-start;text-align:left}
+  dialog#skdlg{width:100vw;max-width:100vw;margin:auto 0 0;border-radius:14px 14px 0 0;max-height:85vh;padding-bottom:env(safe-area-inset-bottom,0px)}
+}
+</style>
+
+<div class="wrap">
+<header class="hd"><h1>스킬 선택판</h1><span class="hd-meta">치트시트 · 2026-11-04 수정</span></header>
+
+<nav class="tabbar" aria-label="주제 선택"><div class="tabs" role="tablist" id="tabs">
+  <button type="button" role="tab" id="tab-finder" data-tab="finder" aria-controls="finder"><b>빠른 찾기</b><small>상황 63개</small></button>
+  <button type="button" role="tab" id="tab-workflow" data-tab="workflow" aria-controls="workflow"><b>워크플로</b><small>앱·웹 / 발표 · 스킬 상세</small></button>
+  <button type="button" role="tab" id="tab-files" data-tab="files" aria-controls="files"><b>Memory File</b><small>Law · 찾기 · 맥락 스킬 · 파일 트리</small></button>
+  <button type="button" role="tab" id="tab-combos" data-tab="combos" aria-controls="combos"><b>세트</b><small>규모별 · 조합 · 피할 것</small></button>
+  <button type="button" role="tab" id="tab-sources" data-tab="sources" aria-controls="sources"><b>기준 · 출처</b><small>소개 · 한계 · 기록</small></button>
+</div></nav>
+
+
+<section class="panel" id="workflow" role="tabpanel" aria-labelledby="tab-workflow">
+  <div class="sec-head">
+    <h2 id="wfTitle"></h2>
+    <p class="lead" id="wfLead"></p>
+  </div>
+  <div class="track" role="group" aria-label="만들 것 선택">
+    <button type="button" id="tr-app" data-track="app" aria-pressed="true"><b>앱 · 웹</b><small>코드 + UI, 같이 / 따로</small></button>
+    <button type="button" id="tr-deck" data-track="deck" aria-pressed="false"><b>발표 자료</b><small>PPT · HTML 덱 · Slidev</small></button>
+  </div>
+  <div class="filters packsel" role="group" aria-label="절차형 묶음 선택" id="packsel"><span class="ps-l">내 절차형 묶음</span>
+    <button type="button" data-pack="all" aria-pressed="true">전체 보기</button>
+    <button type="button" data-pack="Superpowers" aria-pressed="false">Superpowers</button>
+    <button type="button" data-pack="gstack" aria-pressed="false">gstack</button>
+    <button type="button" data-pack="pstack" aria-pressed="false">pstack</button>
+    <button type="button" data-pack="Spec Kit" aria-pressed="false">Spec Kit</button>
+    <button type="button" data-pack="Feature Dev" aria-pressed="false">Feature Dev</button>
+  </div>
+  <p class="ps-note" id="psnote"></p>
+  <div class="swim" id="swim"></div>
+  <div class="legend" id="legend"></div>
+  <p class="vf">스킬 상세의 명령 아래 표시: <b>README 확인</b> 저장소 README와 대조함 · <b>원 정리 기준</b> 사용자 제공 정리의 명령(실행해 보지 않음) · <b>미확인</b> 명령을 찾지 못함</p>
+  <div id="deckOutro" hidden>
+  <div class="combo">
+    <div class="box warn"><h3>주의할 점</h3>
+      <ul>
+        <li><b>한글 글꼴:</b> .pptx는 받는 PC에 글꼴이 없으면 다른 글꼴로 바뀌어 줄바꿈이 틀어집니다. 맑은 고딕처럼 흔한 글꼴을 쓰거나 PDF를 함께 보내세요</li>
+        <li><b>형식 변환:</b> HTML 덱을 PPTX로 바꾸면 레이아웃이 깨지기 쉽습니다. 처음부터 받을 형식으로 만드세요</li>
+        <li><b>한 덱에 스킬 하나:</b> pptx와 frontend-slides를 섞으면 디자인 규칙이 충돌합니다</li>
+      </ul></div>
+    <div class="box"><h3>앱 프로젝트와 연결하기</h3>
+      <ul>
+        <li>메인 워크플로의 <b>확장</b> 단계에서 만드는 산출물로 둡니다</li>
+        <li>내용은 <span class="file">spec.md</span>(무엇을 왜)와 <span class="file">docs/learnings.md</span>(결과·교훈)에서 가져옵니다</li>
+        <li>디자인은 <span class="file">DESIGN.md</span>를 그대로 써서 앱과 같은 브랜드로 맞춥니다</li>
+        <li>파일은 <span class="file">decks/&lt;발표명&gt;/</span> 아래에 모읍니다 (Memory File 탭)</li>
+      </ul></div>
+  </div>
+  </div>
+</section>
+
+<section class="panel" id="files" role="tabpanel" aria-labelledby="tab-files">
+  <div class="subtabs" role="tablist" aria-label="Memory File 소분류" id="mfsub">
+    <button type="button" role="tab" id="mfb-law" data-sub="law" aria-controls="mf-law" aria-selected="true"><b>Law</b><small>반드시 해 둘 것</small></button>
+    <button type="button" role="tab" id="mfb-find" data-sub="find" aria-controls="mf-find" aria-selected="false"><b>빠른 찾기</b><small>파일 17개 · 프롬프트</small></button>
+    <button type="button" role="tab" id="mfb-ctx" data-sub="ctx" aria-controls="mf-ctx" aria-selected="false"><b>맥락 스킬</b><small>파일을 대신 써 주는 스킬 6개</small></button>
+    <button type="button" role="tab" id="mfb-tree" data-sub="tree" aria-controls="mf-tree" aria-selected="false"><b><span class="mf-long">단계별 </span>파일트리</b><small>단계마다 생기는 파일</small></button>
+  </div>
+  <div class="sec-head">
+    <h2>Memory File</h2>
+    <p class="lead">에이전트는 지난 대화를 기억하지 못하고 <b>파일을 읽고 일합니다</b>. 이 파일들이 에이전트의 기억입니다. <b>Law</b>에서 프로젝트 시작 때 반드시 해 둘 것을, <b>빠른 찾기</b>에서 파일별 쓰는 때·명령·복사용 프롬프트를, <b>맥락 스킬</b>에서 파일을 대신 써 주는 스킬을, <b>단계별 파일트리</b>에서 단계마다 어떤 파일이 생기는지 봅니다.</p>
+  </div>
+  <div class="mfpane" id="mf-law" role="tabpanel" aria-labelledby="mfb-law">
+  <p class="lead">프로젝트를 시작할 때 <b>반드시 해 둘 것만</b> 모았습니다. 핵심은 규칙마다 <b>둘 곳</b>을 나누는 것입니다. 문서(AGENTS.md)에 적은 지시는 에이전트가 놓칠 수 있으니, 매번 반드시 지켜야 하는 규칙은 설정 파일로 강제합니다.</p>
+
+  <h3 class="law-h">① 규칙을 어디에 둘까</h3>
+  <div class="where">
+    <div class="wh"><span class="wq">매번 반드시 지켜야 한다</span><span class="wf">.claude/settings.json</span><span class="wd">계약 파일 수정 금지, 비밀 파일 읽기 금지, 저장할 때 자동 정리. 권한(deny)과 훅으로 <b>항상</b> 실행</span></div>
+    <div class="wh"><span class="wq">모든 작업에 늘 필요하다</span><span class="wf">AGENTS.md</span><span class="wd">스택·폴더 지도, 폴더를 나눈 이유, 실행 명령, 완료 기준. 세션마다 처음 읽힘</span></div>
+    <div class="wh"><span class="wq">특정 폴더에서만 필요하다</span><span class="wf">하위 폴더 CLAUDE.md</span><span class="wd">예: src/components/CLAUDE.md에 UI 규칙. 그 폴더 파일을 읽을 때만 불러옴</span></div>
+    <div class="wh"><span class="wq">가끔만 필요하다</span><span class="wf">.claude/skills/&lt;이름&gt;/SKILL.md</span><span class="wd">배포 절차, DB 마이그레이션 같은 것. 관련 있을 때만 불러옴</span></div>
+    <div class="wh"><span class="wq">나만 쓴다</span><span class="wf">CLAUDE.local.md · settings.local.json</span><span class="wd">개인 메모와 개인 권한. git에 올리지 않음</span></div>
+  </div>
+
+  <h3 class="law-h">② 반드시 만들 파일 4개</h3>
+  <div class="mdgrid">
+    <article class="mdc">
+      <div class="mdh"><span class="fn">AGENTS.md</span><span class="sb">뼈대</span><span class="lt t">같이</span></div>
+      <p class="law-d"><b>WHAT · WHY · HOW · DONE</b> 네 칸만. 60줄 안팎, 200줄을 넘기지 않습니다. 스택과 명령은 예시이니 프로젝트에 맞게 바꾸세요.</p>
+      <span class="code"><code># AGENTS.md
+&lt;!-- 60줄 안팎. 줄마다 "이 줄을 빼면 실수할까?" 아니면 지운다 --&gt;
+
+## WHAT · 무엇
+- 스택: Next.js + TypeScript, shadcn/ui, Postgres
+- 지도: src/lib 로직 · src/api 서버 API · src/components 화면
+- 명세: specs/&lt;기능&gt;/ (spec.md, contracts/, tasks.md)
+
+## WHY · 왜 이렇게 나눴나
+- contracts/는 코드와 UI가 맞물리는 약속이라 혼자 바꾸지 않는다
+- src/lib는 화면을 모른다 (UI 없이 테스트하려고)
+
+## HOW · 어떻게
+- 설치 pnpm install · 개발 pnpm dev · 타입 pnpm typecheck
+- 테스트 pnpm test · e2e pnpm test:e2e
+- 시작 전에 specs/&lt;기능&gt;/spec.md와 tasks.md를 읽는다
+- 자기 갈래([CODE] 또는 [UI]) 작업만 한다
+- 코드를 붙여 넣지 말고 경로로 가리킨다 (예: src/lib/assign.ts:12-40)
+
+## DONE · 완료 기준
+- 관련 테스트 통과 + reports/에 결과 기록
+- 끝내기 전에 docs/handoff.md 갱신
+
+## 배운 점
+- (두 번 이상 반복된 교훈만 추가)</code><button type="button">복사</button></span>
+    </article>
+    <article class="mdc">
+      <div class="mdh"><span class="fn">CLAUDE.md</span><span class="sb">뼈대</span><span class="lt t">같이</span></div>
+      <p class="law-d">Claude Code는 AGENTS.md가 아니라 CLAUDE.md를 읽습니다. 규칙은 AGENTS.md 한 곳에 두고, 여기서는 불러오기만 합니다.</p>
+      <span class="code"><code>@AGENTS.md</code><button type="button">복사</button></span>
+    </article>
+    <article class="mdc">
+      <div class="mdh"><span class="fn">.claude/settings.json</span><span class="sb">뼈대</span><span class="lt t">같이</span></div>
+      <p class="law-d">문서로 부탁하지 말고 설정으로 막습니다. <b>deny</b>는 계약 파일 수정과 .env 읽기를 막고, <b>훅</b>은 파일을 고칠 때마다 Prettier로 정리합니다. git에 커밋해 팀이 같이 씁니다.</p>
+      <span class="code"><code>{
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Edit(/specs/**/contracts/**)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "jq -r '.tool_input.file_path' | xargs npx prettier --write" }
+        ]
+      }
+    ]
+  }
+}</code><button type="button">복사</button></span>
+      <p class="law-n">jq와 Prettier가 설치돼 있어야 합니다. 계약을 바꿔야 할 때는 사람이 직접 고치고 양쪽에 알립니다. 설정 문법은 Claude Code 공식 문서(Hooks · Permissions) 기준입니다.</p>
+    </article>
+    <article class="mdc">
+      <div class="mdh"><span class="fn">src/components/CLAUDE.md</span><span class="sb">설계</span><span class="lt u">UI</span></div>
+      <p class="law-d">UI 규칙은 루트에 두지 않고 UI 폴더에 둡니다. 코드 세션에는 안 읽히고, 화면 파일을 다룰 때만 불러옵니다.</p>
+      <span class="code"><code># UI 규칙 (src/components 작업 때만 읽힘)
+- 시작 전에 DESIGN.md를 읽는다
+- 색·글꼴·간격은 DESIGN.md 토큰만 쓴다
+- 화면마다 빈 화면·로딩·오류 상태를 만든다 (contracts/ui-states.md)</code><button type="button">복사</button></span>
+    </article>
+  </div>
+
+  <h3 class="law-h">③ 지킬 것</h3>
+  <ul class="law-list">
+    <li><b>줄마다 따지기</b>: "이 줄을 빼면 Claude가 실수할까?" 아니면 지운다. Claude가 원래 아는 일반 상식은 적지 않는다</li>
+    <li><b>예외를 덧붙이지 않기</b>: NEVER·IMPORTANT를 계속 추가하지 말고, 반복되면 settings.json으로 옮긴다</li>
+    <li><b>복사 말고 가리키기</b>: 긴 코드나 문서는 붙여 넣지 말고 경로(파일:줄)나 @파일로</li>
+    <li><b>자동 생성은 검토하기</b>: /init 초안은 남길 줄만 골라 AGENTS.md로</li>
+    <li><b>서브에이전트는 요약만</b>: 자세한 결과는 reports/에 쓰고, 메인에는 짧은 요약만 돌려준다</li>
+    <li><b>가끔 /context로 점검</b>: 무엇이 맥락을 차지하는지 보고, 안 쓰는 스킬·MCP는 끈다</li>
+    <li><b>세션은 새로</b>: 길어지면 docs/handoff.md에 정리하고 새 세션에서 이어 간다</li>
+  </ul>
+  <p class="vf">참고: <a href="https://tech.hancom.com/claude-md-context-optimization/" target="_blank" rel="noopener">효율적인 CLAUDE.md 파일관리 및 컨텍스트 최적화 전략 (한컴테크)</a> · <a href="https://code.claude.com/docs/en/hooks-guide" target="_blank" rel="noopener">Claude Code Hooks</a> · <a href="https://code.claude.com/docs/en/permissions" target="_blank" rel="noopener">Permissions</a></p>
+  </div>
+  <div class="mfpane" id="mf-find" role="tabpanel" aria-labelledby="mfb-find" hidden>
+  <div class="mdbar">
+    <label for="mdq" class="flabel">파일 찾기</label>
+    <input type="search" id="mdq" placeholder="파일·명령·키워드로 찾기 (예: 상태, 결정, 성능)" aria-label="md 파일 찾기">
+    <div class="filters" role="group" aria-label="단계" id="mdf">
+      <button type="button" id="m-all" data-m="all" aria-pressed="true">전체</button>
+      <button type="button" id="m-0" data-m="0" aria-pressed="false">뼈대</button>
+      <button type="button" id="m-1" data-m="1" aria-pressed="false">스펙</button>
+      <button type="button" id="m-2" data-m="2" aria-pressed="false">설계</button>
+      <button type="button" id="m-3" data-m="3" aria-pressed="false">구현</button>
+      <button type="button" id="m-4" data-m="4" aria-pressed="false">검증</button>
+      <button type="button" id="m-5" data-m="5" aria-pressed="false">확장</button>
+      <button type="button" id="m-p" data-m="p" aria-pressed="false">발표</button>
+    </div>
+    <span class="count" id="mdcount"></span>
+  </div>
+  <div class="mdgrid" id="mdgrid">
+    <article class="mdc" data-st="0" data-txt="agents.md (+ claude.md) what why how done law 프로젝트를 시작할 때. 확장 단계에서 교훈을 규칙으로 추가 같이 씀 → 모든 세션이 시작할 때 읽음 /init /speckit.constitution context-engineering 이 프로젝트의 실행·테스트 명령, 폴더 규칙, 금지사항을 agents.md로 정리해 줘. 30줄 이내, 설명 말고 규칙만. claude.md에는 @agents.md 한 줄만 둬.">
+      <div class="mdh"><span class="fn">AGENTS.md (+ CLAUDE.md)</span><span class="sb">뼈대</span><span class="lt t">같이</span></div>
+      <dl><dt>언제</dt><dd>프로젝트를 시작할 때. 확장 단계에서 교훈을 규칙으로 추가</dd><dt>누가</dt><dd>같이 씀 → 모든 세션이 시작할 때 읽음</dd><dt>자동으로</dt><dd><span class="cmd ">/init</span><span class="cmd ">/speckit.constitution</span><span class="cmd ">context-engineering</span></dd></dl>
+      <span class="code"><code>이 프로젝트의 AGENTS.md를 WHAT(스택·폴더 지도) / WHY(폴더를 나눈 이유) / HOW(실행·테스트 명령, 작업 규칙) / DONE(완료 기준) 네 칸으로 60줄 안팎으로 써 줘. Claude가 원래 아는 일반 상식은 빼고, 줄마다 &#x27;빼면 실수할까?&#x27;를 따져 아니면 지워 줘. 매번 반드시 지켜야 하는 금지 규칙은 .claude/settings.json으로 옮길 후보로 따로 알려 줘. CLAUDE.md에는 @AGENTS.md 한 줄만 둬.</code><button type="button">복사</button></span>
+      <details class="tp"><summary>템플릿</summary><pre># AGENTS.md
+&lt;!-- 60줄 안팎. 줄마다 "이 줄을 빼면 실수할까?" 아니면 지운다 --&gt;
+
+## WHAT · 무엇
+- 스택: Next.js + TypeScript, shadcn/ui, Postgres
+- 지도: src/lib 로직 · src/api 서버 API · src/components 화면
+- 명세: specs/&lt;기능&gt;/ (spec.md, contracts/, tasks.md)
+
+## WHY · 왜 이렇게 나눴나
+- contracts/는 코드와 UI가 맞물리는 약속이라 혼자 바꾸지 않는다
+- src/lib는 화면을 모른다 (UI 없이 테스트하려고)
+
+## HOW · 어떻게
+- 설치 pnpm install · 개발 pnpm dev · 타입 pnpm typecheck
+- 테스트 pnpm test · e2e pnpm test:e2e
+- 시작 전에 specs/&lt;기능&gt;/spec.md와 tasks.md를 읽는다
+- 자기 갈래([CODE] 또는 [UI]) 작업만 한다
+- 코드를 붙여 넣지 말고 경로로 가리킨다 (예: src/lib/assign.ts:12-40)
+
+## DONE · 완료 기준
+- 관련 테스트 통과 + reports/에 결과 기록
+- 끝내기 전에 docs/handoff.md 갱신
+
+## 배운 점
+- (두 번 이상 반복된 교훈만 추가)
+---------------------------------
+# CLAUDE.md  (Claude Code가 읽는 파일)
+@AGENTS.md</pre></details>
+    </article>
+    <article class="mdc" data-st="1" data-txt="docs/glossary.md 질문으로 요구사항을 정할 때 같이 같이 씀 → 모두 grill-with-docs 지금까지 대화에 나온 용어를 docs/glossary.md에 &#x27;용어 | 뜻 | 쓰지 말 것&#x27; 표로 정리해 줘.">
+      <div class="mdh"><span class="fn">docs/glossary.md</span><span class="sb">스펙</span><span class="lt t">같이</span></div>
+      <dl><dt>언제</dt><dd>질문으로 요구사항을 정할 때 같이</dd><dt>누가</dt><dd>같이 씀 → 모두</dd><dt>자동으로</dt><dd><span class="cmd ">grill-with-docs</span></dd></dl>
+      <span class="code"><code>지금까지 대화에 나온 용어를 docs/glossary.md에 &#x27;용어 | 뜻 | 쓰지 말 것&#x27; 표로 정리해 줘.</code><button type="button">복사</button></span>
+      <details class="tp"><summary>템플릿</summary><pre>| 용어 | 뜻 | 쓰지 말 것 |
+|------|----|-----------|
+| 할 일 | 회의록에서 뽑은 작업 한 건 | 태스크, 액션아이템 |
+| 미배정 | 담당자가 정해지지 않은 상태 | 무배정, 없음 |</pre></details>
+    </article>
+    <article class="mdc" data-st="1" data-txt="docs/research/references.md 화면 레퍼런스를 모은 뒤 ui 씀 → ui 세션, screens.md 쓸 때 mobbin nicelydone 찾은 레퍼런스를 docs/research/references.md에 &#x27;서비스 | 화면 | 링크 | 가져올 점&#x27; 표로 정리하고, 아래에 공통 패턴을 5개 이내로 적어 줘.">
+      <div class="mdh"><span class="fn">docs/research/references.md</span><span class="sb">스펙</span><span class="lt u">UI</span></div>
+      <dl><dt>언제</dt><dd>화면 레퍼런스를 모은 뒤</dd><dt>누가</dt><dd>UI 씀 → UI 세션, screens.md 쓸 때</dd><dt>자동으로</dt><dd><span class="cmd u">Mobbin</span><span class="cmd u">Nicelydone</span></dd></dl>
+      <span class="code"><code>찾은 레퍼런스를 docs/research/references.md에 &#x27;서비스 | 화면 | 링크 | 가져올 점&#x27; 표로 정리하고, 아래에 공통 패턴을 5개 이내로 적어 줘.</code><button type="button">복사</button></span>
+      <details class="tp"><summary>템플릿</summary><pre>| 서비스 | 화면 | 링크 | 가져올 점 |
+|--------|------|------|-----------|
+| Linear | 이슈 목록 | (링크) | 담당자 아바타 + 빈 칸이면 &#x27;미배정&#x27; |
+
+## 공통 패턴
+- 목록 위에 필터 칩
+- 빈 화면에 첫 행동 버튼</pre></details>
+    </article>
+    <article class="mdc" data-st="1" data-txt="specs/&lt;기능&gt;/spec.md 코딩 전에 가장 먼저 같이 씀 → 모두 /speckit.specify /speckit.clarify 만들 기능을 spec.md로 정리해 줘: 사용자 시나리오, 요구사항(fr-번호), 예외 규칙, 수용 기준(ac-번호), 성능 목표. 정해지지 않은 건 &#x27;확인 필요&#x27;로 표시하고 나에게 질문해 줘.">
+      <div class="mdh"><span class="fn">specs/&lt;기능&gt;/spec.md</span><span class="sb">스펙</span><span class="lt t">같이</span></div>
+      <dl><dt>언제</dt><dd>코딩 전에 가장 먼저</dd><dt>누가</dt><dd>같이 씀 → 모두</dd><dt>자동으로</dt><dd><span class="cmd ">/speckit.specify</span><span class="cmd ">/speckit.clarify</span></dd></dl>
+      <span class="code"><code>만들 기능을 spec.md로 정리해 줘: 사용자 시나리오, 요구사항(FR-번호), 예외 규칙, 수용 기준(AC-번호), 성능 목표. 정해지지 않은 건 &#x27;확인 필요&#x27;로 표시하고 나에게 질문해 줘.</code><button type="button">복사</button></span>
+      <details class="tp"><summary>템플릿</summary><pre># 기능: 회의록 요약과 담당자 배정
+
+## 사용자 시나리오
+- US1: 회의록을 올리면 요약을 본다
+- US2: 할 일과 담당자가 자동으로 정리된다
+
+## 요구사항
+- FR-001 회의록(텍스트) 업로드
+- FR-002 할 일 추출
+- FR-003 담당자 배정
+
+## 예외 규칙
+- 담당자가 언급되지 않으면 임의로 배정하지 않는다 → "미배정"
+- 여러 명이 언급되면 사용자가 고른다
+
+## 수용 기준
+- AC-1 담당자 없는 할 일은 "미배정"으로 보이고 알림을 보내지 않는다
+- AC-2 화면의 담당자와 알림 받는 사람이 같다
+- AC-3 할 일 1,000개 목록이 0.5초 안에 표시된다
+
+## 성능 목표
+- 회의록 최대 크기: 텍스트 5만 자
+- 요약 응답: 10초 이내</pre></details>
+    </article>
+    <article class="mdc" data-st="1" data-txt="specs/&lt;기능&gt;/research.md 기존 코드가 있는 프로젝트에 기능을 붙일 때 코드 씀 → plan.md 쓸 때 /feature-dev /speckit.plan 이 기능과 관련된 기존 코드를 조사해서 research.md에 정리해 줘: 관련 파일 경로, 지금 동작, 재사용할 것, 건드리면 위험한 곳.">
+      <div class="mdh"><span class="fn">specs/&lt;기능&gt;/research.md</span><span class="sb">스펙</span><span class="lt c">코드</span></div>
+      <dl><dt>언제</dt><dd>기존 코드가 있는 프로젝트에 기능을 붙일 때</dd><dt>누가</dt><dd>코드 씀 → plan.md 쓸 때</dd><dt>자동으로</dt><dd><span class="cmd c">/feature-dev</span><span class="cmd c">/speckit.plan</span></dd></dl>
+      <span class="code"><code>이 기능과 관련된 기존 코드를 조사해서 research.md에 정리해 줘: 관련 파일 경로, 지금 동작, 재사용할 것, 건드리면 위험한 곳.</code><button type="button">복사</button></span>
+      <details class="tp"><summary>템플릿</summary><pre>## 관련 파일
+- src/lib/notes.ts: 회의록 저장
+
+## 지금 동작
+- 업로드 → DB 저장까지만 있음
+
+## 재사용
+- 저장 함수 saveNote()
+
+## 위험
+- 알림 모듈은 다른 기능도 씀</pre></details>
+    </article>
+    <article class="mdc" data-st="2" data-txt="specs/&lt;기능&gt;/plan.md spec.md가 확정된 뒤 같이 씀 → 코드·ui 세션 /speckit.plan writing-plans spec.md를 읽고 plan.md를 써 줘: 기술 구조, 모듈 경계, 쓸 라이브러리, 데이터 양과 예상 병목, 버린 대안과 이유.">
+      <div class="mdh"><span class="fn">specs/&lt;기능&gt;/plan.md</span><span class="sb">설계</span><span class="lt t">같이</span></div>
+      <dl><dt>언제</dt><dd>spec.md가 확정된 뒤</dd><dt>누가</dt><dd>같이 씀 → 코드·UI 세션</dd><dt>자동으로</dt><dd><span class="cmd ">/speckit.plan</span><span class="cmd ">writing-plans</span></dd></dl>
+      <span class="code"><code>spec.md를 읽고 plan.md를 써 줘: 기술 구조, 모듈 경계, 쓸 라이브러리, 데이터 양과 예상 병목, 버린 대안과 이유.</code><button type="button">복사</button></span>
+      <details class="tp"><summary>템플릿</summary><pre>## 구조
+- 업로드 API → 요약 작업 → 할 일 추출 → 배정
+
+## 라이브러리
+- UI: shadcn/ui
+
+## 데이터 양·병목
+- 회의록 최대 5만 자, 요약이 가장 느림 → 비동기 처리
+
+## 버린 대안
+- 실시간 요약: 비용 대비 효과 낮음</pre></details>
+    </article>
+    <article class="mdc" data-st="2" data-txt="specs/&lt;기능&gt;/data-model.md · contracts/ 구현 단계를 코드·ui로 나누기 직전 (나눠도 끝에 맞물리게 하는 계약) 같이 씀 → 코드·ui 둘 다, 혼자 수정 금지 /speckit.plan spec.md 기준으로 data-model.md와 contracts/api.md, contracts/ui-states.md를 만들어 줘. 화면마다 빈 화면·로딩·오류 상태를 빠짐없이 적어 줘.">
+      <div class="mdh"><span class="fn">specs/&lt;기능&gt;/data-model.md · contracts/</span><span class="sb">설계</span><span class="lt t">같이</span></div>
+      <dl><dt>언제</dt><dd>구현 단계를 코드·UI로 나누기 직전 (나눠도 끝에 맞물리게 하는 계약)</dd><dt>누가</dt><dd>같이 씀 → 코드·UI 둘 다, 혼자 수정 금지</dd><dt>자동으로</dt><dd><span class="cmd ">/speckit.plan</span></dd></dl>
+      <span class="code"><code>spec.md 기준으로 data-model.md와 contracts/api.md, contracts/ui-states.md를 만들어 줘. 화면마다 빈 화면·로딩·오류 상태를 빠짐없이 적어 줘.</code><button type="button">복사</button></span>
+      <details class="tp"><summary>템플릿</summary><pre>## 할 일 목록 화면
+| 상태   | 조건              | 화면                         |
+|--------|-------------------|------------------------------|
+| 빈 화면 | 할 일 0개          | "추출된 할 일이 없어요"        |
+| 로딩   | 요약 중            | 목록 자리 표시(스켈레톤)        |
+| 오류   | API 실패           | 오류 문구 + 다시 시도 버튼      |
+| 미배정 | assignee = null   | "미배정" 배지 + 배정하기 버튼   |
+
+## 데이터 모양 (api.md에 상세)
+Task { id, title, assignee: string | null, dueDate?: string }</pre></details>
+    </article>
+    <article class="mdc" data-st="2" data-txt="specs/&lt;기능&gt;/tasks.md 계획 뒤. 구현~검증 단계에서 체크하고 새 일은 추가 같이 씀 → 각 세션은 자기 태그만 /speckit.tasks plan.md를 tasks.md로 쪼개 줘. 형식: - [ ] t001 [code|ui] 설명 파일경로. 병렬 가능하면 [p], 시나리오 번호는 [us1]. 합칠 때 할 일은 [합류].">
+      <div class="mdh"><span class="fn">specs/&lt;기능&gt;/tasks.md</span><span class="sb">설계</span><span class="lt t">같이</span></div>
+      <dl><dt>언제</dt><dd>계획 뒤. 구현~검증 단계에서 체크하고 새 일은 추가</dd><dt>누가</dt><dd>같이 씀 → 각 세션은 자기 태그만</dd><dt>자동으로</dt><dd><span class="cmd ">/speckit.tasks</span></dd></dl>
+      <span class="code"><code>plan.md를 tasks.md로 쪼개 줘. 형식: - [ ] T001 [CODE|UI] 설명 파일경로. 병렬 가능하면 [P], 시나리오 번호는 [US1]. 합칠 때 할 일은 [합류].</code><button type="button">복사</button></span>
+      <details class="tp"><summary>템플릿</summary><pre>- [ ] T001 [CODE] 회의록·할 일 데이터 모델 src/lib/models.ts
+- [ ] T002 [P] [UI] 업로드 화면 (fixtures 사용) src/app/upload/
+- [ ] T003 [CODE] [US2] 담당자 배정 로직 + 테스트 tests/unit/assign.test.ts
+- [ ] T004 [UI] [US2] "미배정" 상태 표시 (contracts/ui-states.md)
+- [ ] T005 [합류] 실제 API 연결 + e2e로 AC-1, AC-2 확인
+
+# [P] 병렬 가능, [US1] 시나리오 번호 = Spec Kit 형식
+# [CODE]/[UI]/[합류] = 이 정리에서 덧붙인 갈래 표시</pre></details>
+    </article>
+    <article class="mdc" data-st="2" data-txt="specs/&lt;기능&gt;/screens.md 레퍼런스를 모은 뒤 화면을 정할 때 ui 씀 → ui 세션 /impeccable shape stitch references.md의 공통 패턴으로 screens.md를 써 줘: 화면 목록, 화면별 구성과 쓰는 컴포넌트, 상태별 모습(contracts/ui-states.md 기준).">
+      <div class="mdh"><span class="fn">specs/&lt;기능&gt;/screens.md</span><span class="sb">설계</span><span class="lt u">UI</span></div>
+      <dl><dt>언제</dt><dd>레퍼런스를 모은 뒤 화면을 정할 때</dd><dt>누가</dt><dd>UI 씀 → UI 세션</dd><dt>자동으로</dt><dd><span class="cmd u">/impeccable shape</span><span class="cmd u">Stitch</span></dd></dl>
+      <span class="code"><code>references.md의 공통 패턴으로 screens.md를 써 줘: 화면 목록, 화면별 구성과 쓰는 컴포넌트, 상태별 모습(contracts/ui-states.md 기준).</code><button type="button">복사</button></span>
+      <details class="tp"><summary>템플릿</summary><pre>## 할 일 목록
+- 구성: 필터 칩 / 표 / 오른쪽 상세 패널
+- 컴포넌트: Table, Badge, Sheet
+- 상태: 빈 화면·로딩·오류·미배정 (ui-states.md)</pre></details>
+    </article>
+    <article class="mdc" data-st="2" data-txt="design.md 화면을 만들기 전에. 컴포넌트 라이브러리를 고른 뒤 ui 씀 → ui 세션이 항상 먼저 읽음 /impeccable document get_variable_defs (figma) design.md를 must/should/never 형식으로 써 줘: 색·글꼴·간격·모서리·컴포넌트 상태·움직임. 본문 글자 대비는 직접 계산해서 4.5:1 이상인지 확인해 줘.">
+      <div class="mdh"><span class="fn">DESIGN.md</span><span class="sb">설계</span><span class="lt u">UI</span></div>
+      <dl><dt>언제</dt><dd>화면을 만들기 전에. 컴포넌트 라이브러리를 고른 뒤</dd><dt>누가</dt><dd>UI 씀 → UI 세션이 항상 먼저 읽음</dd><dt>자동으로</dt><dd><span class="cmd u">/impeccable document</span><span class="cmd u">get_variable_defs (Figma)</span></dd></dl>
+      <span class="code"><code>DESIGN.md를 MUST/SHOULD/NEVER 형식으로 써 줘: 색·글꼴·간격·모서리·컴포넌트 상태·움직임. 본문 글자 대비는 직접 계산해서 4.5:1 이상인지 확인해 줘.</code><button type="button">복사</button></span>
+      <details class="tp"><summary>템플릿</summary><pre># DESIGN.md
+## 방향
+- 업무 도구: 차분하고 빽빽하게, 강조는 한 곳만
+- 참고 서비스: (references.md에서 고른 1~2곳)
+- 컴포넌트 라이브러리: shadcn/ui
+
+## 색
+- MUST 토큰만 사용: --color-bg, --color-fg, --color-muted,
+  --color-accent, --color-ok, --color-warn, --color-error
+- MUST 본문 글자 대비 4.5:1 이상 (직접 계산해서 확인)
+- SHOULD 상태 색은 강조색과 따로
+- NEVER 토큰에 없는 색을 직접 쓰기
+
+## 글꼴
+- MUST --font-body, 숫자 열은 tabular-nums
+- SHOULD 굵기는 2~3가지만
+
+## 간격 · 모서리
+- MUST 4px 단위 (--space-1 ~ --space-6)
+- MUST 모서리는 --radius-sm, --radius-md 둘만
+
+## 컴포넌트 · 상태
+- MUST 모든 버튼에 hover·focus·disabled 상태
+- MUST 화면마다 빈 화면·로딩·오류 상태 (contracts/ui-states.md)
+- MUST 아이콘만 있는 버튼에 aria-label
+- MUST 되돌릴 수 없는 동작은 확인 창
+- NEVER 카드 안에 카드
+
+## 움직임
+- MUST transform·opacity만 애니메이션
+- SHOULD 반응은 200ms 이하, prefers-reduced-motion 존중</pre></details>
+    </article>
+    <article class="mdc" data-st="2" data-txt="tests/spec.md contracts와 같은 때. 코딩 전에 같이 씀 → 코드(단위 테스트), 검증 단계(e2e) /speckit.tasks spec.md의 수용 기준(ac)마다 &#x27;상황 → 행동 → 기대 결과&#x27;와 테스트 파일 위치를 tests/spec.md에 써 줘.">
+      <div class="mdh"><span class="fn">tests/spec.md</span><span class="sb">설계</span><span class="lt t">같이</span></div>
+      <dl><dt>언제</dt><dd>contracts와 같은 때. 코딩 전에</dd><dt>누가</dt><dd>같이 씀 → 코드(단위 테스트), 검증 단계(e2e)</dd><dt>자동으로</dt><dd><span class="cmd ">/speckit.tasks</span></dd></dl>
+      <span class="code"><code>spec.md의 수용 기준(AC)마다 &#x27;상황 → 행동 → 기대 결과&#x27;와 테스트 파일 위치를 tests/spec.md에 써 줘.</code><button type="button">복사</button></span>
+      <details class="tp"><summary>템플릿</summary><pre>## AC-1 담당자 없는 할 일
+- 주어진 상황: "회의 내용 정리하기"에 사람 이름이 없다
+- 행동: 회의록을 올린다
+- 기대 결과: 할 일이 "미배정"으로 보이고, 알림을 보내지 않는다
+- 테스트: tests/unit/assign.test.ts, tests/e2e/upload.spec.ts
+
+## AC-2 화면과 알림의 담당자 일치
+- 주어진 상황: "김대리가 자료 정리"
+- 행동: 회의록을 올린다
+- 기대 결과: 화면과 알림 모두 김대리
+- 테스트: tests/e2e/notify.spec.ts
+
+## AC-3 목록 표시 속도
+- 주어진 상황: 할 일 1,000개
+- 행동: 목록 화면을 연다
+- 기대 결과: 0.5초 안에 표시 (5회 반복 측정)
+- 테스트: tests/bench/task-list.bench.ts → reports/perf.md</pre></details>
+    </article>
+    <article class="mdc" data-st="2" data-txt="docs/decisions/nnnn-제목.md 되돌리기 어려운 결정을 했을 때마다 코드 씀 → 나중에 &#x27;왜?&#x27;가 궁금한 사람 documentation-and-adrs grill-with-docs 방금 정한 결정을 docs/decisions/0001-제목.md로 기록해 줘: 결정, 이유, 버린 대안, 영향.">
+      <div class="mdh"><span class="fn">docs/decisions/NNNN-제목.md</span><span class="sb">설계</span><span class="lt c">코드</span></div>
+      <dl><dt>언제</dt><dd>되돌리기 어려운 결정을 했을 때마다</dd><dt>누가</dt><dd>코드 씀 → 나중에 &#x27;왜?&#x27;가 궁금한 사람</dd><dt>자동으로</dt><dd><span class="cmd c">documentation-and-adrs</span><span class="cmd c">grill-with-docs</span></dd></dl>
+      <span class="code"><code>방금 정한 결정을 docs/decisions/0001-제목.md로 기록해 줘: 결정, 이유, 버린 대안, 영향.</code><button type="button">복사</button></span>
+      <details class="tp"><summary>템플릿</summary><pre># 0001 요약은 비동기로 처리
+## 결정
+업로드 후 바로 응답하고 요약은 뒤에서 처리
+## 이유
+긴 회의록은 10초 넘게 걸림
+## 버린 대안
+동기 처리 (화면이 멈춤)
+## 영향
+요약 완료 알림이 필요함</pre></details>
+    </article>
+    <article class="mdc" data-st="3" data-txt="docs/handoff.md 세션을 끝내거나 다른 세션·사람에게 넘길 때 같이 씀 → 다음 세션이 agents.md 다음으로 읽음 /handoff /context-save /context-restore 지금까지 진행 상황을 docs/handoff.md에 정리해 줘: 끝난 것, 진행 중인 것, 다음 할 일, 먼저 읽을 파일 경로. 다른 파일에 이미 있는 내용은 경로만 적어 줘.">
+      <div class="mdh"><span class="fn">docs/handoff.md</span><span class="sb">구현</span><span class="lt t">같이</span></div>
+      <dl><dt>언제</dt><dd>세션을 끝내거나 다른 세션·사람에게 넘길 때</dd><dt>누가</dt><dd>같이 씀 → 다음 세션이 AGENTS.md 다음으로 읽음</dd><dt>자동으로</dt><dd><span class="cmd ">/handoff</span><span class="cmd ">/context-save</span><span class="cmd ">/context-restore</span></dd></dl>
+      <span class="code"><code>지금까지 진행 상황을 docs/handoff.md에 정리해 줘: 끝난 것, 진행 중인 것, 다음 할 일, 먼저 읽을 파일 경로. 다른 파일에 이미 있는 내용은 경로만 적어 줘.</code><button type="button">복사</button></span>
+      <details class="tp"><summary>템플릿</summary><pre>## 끝난 것
+- T001~T003 (tasks.md)
+## 진행 중
+- T004 미배정 표시: 오류 상태만 남음
+## 다음 할 일
+- T005 실제 API 연결
+## 먼저 읽을 파일
+- specs/001-meeting-summary/spec.md, contracts/ui-states.md</pre></details>
+    </article>
+    <article class="mdc" data-st="4" data-txt="reports/review · audit · qa.md 검증 단계 검사를 돌린 뒤 각자 + 같이 씀 → 다음 수정 작업 /review /impeccable audit /qa /review(또는 /impeccable audit, /qa) 결과를 reports/에 날짜와 함께 붙이고 &#x27;고친 것 / 남은 것 / 보류 이유&#x27;로 나눠 줘.">
+      <div class="mdh"><span class="fn">reports/review · audit · qa.md</span><span class="sb">검증</span><span class="lt t">같이</span></div>
+      <dl><dt>언제</dt><dd>검증 단계 검사를 돌린 뒤</dd><dt>누가</dt><dd>각자 + 같이 씀 → 다음 수정 작업</dd><dt>자동으로</dt><dd><span class="cmd ">/review</span><span class="cmd ">/impeccable audit</span><span class="cmd ">/qa</span></dd></dl>
+      <span class="code"><code>/review(또는 /impeccable audit, /qa) 결과를 reports/에 날짜와 함께 붙이고 &#x27;고친 것 / 남은 것 / 보류 이유&#x27;로 나눠 줘.</code><button type="button">복사</button></span>
+      <details class="tp"><summary>템플릿</summary><pre>## 2026-11-02 /review
+### 고친 것
+- 담당자 null일 때 알림 발송 → 막음
+### 남은 것
+- 긴 제목 줄바꿈
+### 보류
+- 다국어: 이번 범위 아님</pre></details>
+    </article>
+    <article class="mdc" data-st="4" data-txt="reports/perf.md 성능 목표가 있을 때, 검증 단계 측정 뒤 코드 씀 → 성능 수정 작업 performance-optimization benchmark-checklist 성능 목표와 측정값을 reports/perf.md에 표로 정리해 줘: 항목 | 목표 | 측정(5회 평균) | 병목 | 조치.">
+      <div class="mdh"><span class="fn">reports/perf.md</span><span class="sb">검증</span><span class="lt c">코드</span></div>
+      <dl><dt>언제</dt><dd>성능 목표가 있을 때, 검증 단계 측정 뒤</dd><dt>누가</dt><dd>코드 씀 → 성능 수정 작업</dd><dt>자동으로</dt><dd><span class="cmd c">performance-optimization</span><span class="cmd c">benchmark-checklist</span></dd></dl>
+      <span class="code"><code>성능 목표와 측정값을 reports/perf.md에 표로 정리해 줘: 항목 | 목표 | 측정(5회 평균) | 병목 | 조치.</code><button type="button">복사</button></span>
+      <details class="tp"><summary>템플릿</summary><pre>| 항목 | 목표 | 측정(5회) | 병목 | 조치 |
+|------|------|-----------|------|------|
+| 목록 1,000개 표시 | 0.5초 | 1.2초 | 행마다 담당자 조회 | 한 번에 조회 |</pre></details>
+    </article>
+    <article class="mdc" data-st="5" data-txt="docs/learnings.md 기능 하나를 끝냈을 때 같이 씀 → 다음 기능을 시작할 때 compound engineering /learn 이번 작업에서 배운 점을 docs/learnings.md에 3줄 이내로 추가하고, 두 번 이상 반복된 교훈은 agents.md 규칙으로 옮겨 줘.">
+      <div class="mdh"><span class="fn">docs/learnings.md</span><span class="sb">확장</span><span class="lt t">같이</span></div>
+      <dl><dt>언제</dt><dd>기능 하나를 끝냈을 때</dd><dt>누가</dt><dd>같이 씀 → 다음 기능을 시작할 때</dd><dt>자동으로</dt><dd><span class="cmd ">Compound Engineering</span><span class="cmd ">/learn</span></dd></dl>
+      <span class="code"><code>이번 작업에서 배운 점을 docs/learnings.md에 3줄 이내로 추가하고, 두 번 이상 반복된 교훈은 AGENTS.md 규칙으로 옮겨 줘.</code><button type="button">복사</button></span>
+      <details class="tp"><summary>템플릿</summary><pre>## 2026-11 회의록 요약
+- 담당자 이름은 별칭이 많음 → 사람 목록과 대조 필수
+- 요약은 비동기가 기본 (ADR 0001)</pre></details>
+    </article>
+    <article class="mdc" data-st="p" data-txt="decks/&lt;발표&gt;/outline.md 발표 자료를 만들기 전에 발표 씀 → 덱 만들 때 grill-me 발표 outline.md를 써 줘: 청중, 핵심 메시지 한 줄, 발표 시간, 슬라이드별 제목과 말할 내용. 앱 프로젝트면 spec.md와 learnings.md에서 가져와 줘.">
+      <div class="mdh"><span class="fn">decks/&lt;발표&gt;/outline.md</span><span class="sb">내용</span><span class="lt p">발표</span></div>
+      <dl><dt>언제</dt><dd>발표 자료를 만들기 전에</dd><dt>누가</dt><dd>발표 씀 → 덱 만들 때</dd><dt>자동으로</dt><dd><span class="cmd p">grill-me</span></dd></dl>
+      <span class="code"><code>발표 outline.md를 써 줘: 청중, 핵심 메시지 한 줄, 발표 시간, 슬라이드별 제목과 말할 내용. 앱 프로젝트면 spec.md와 learnings.md에서 가져와 줘.</code><button type="button">복사</button></span>
+      <details class="tp"><summary>템플릿</summary><pre>청중: 팀장급 / 시간: 10분 / 핵심: 회의 후 할 일이 사라지지 않게
+1. 문제: 회의 뒤 할 일 30%가 잊힘
+2. 해결: 자동 요약 + 담당자 배정
+3. 증거: 시범 2주 결과
+4. 요청: 전사 적용 승인</pre></details>
+    </article>
+  </div>
+
+  <div class="empty" id="mdempty" hidden><span>조건에 맞는 파일이 없어요.</span><button type="button" id="mdreset">필터 초기화</button></div>
+  </div>
+  <div class="mfpane ctxwrap" id="mf-ctx" role="tabpanel" aria-labelledby="mfb-ctx" hidden>
+  <p class="lead">파일을 손으로 다 쓰지 않아도 됩니다. 아래 스킬이 파일을 대신 만들거나, 세션을 넘길 때 맥락을 정리해 줍니다.</p>
+  <div class="ctxbox">
+    <ul class="ctx">
+      <li><span class="cmd">/init</span><span>Claude Code 내장. 코드를 읽고 CLAUDE.md 초안을 만듦 → 규칙만 AGENTS.md로 옮기기</span></li>
+      <li><span class="cmd c">Spec Kit</span><span>spec · plan · research · data-model · contracts · tasks를 명령 하나씩으로 생성. 파일을 가장 많이 대신 써 줌</span></li>
+      <li><span class="cmd c">grill-with-docs</span><span>Matt Pocock. 질문하면서 용어집과 결정 기록(ADR)을 같이 씀</span></li>
+      <li><span class="cmd c">documentation-and-adrs</span><span>Addy Osmani. 왜 그렇게 정했는지를 결정 기록으로 남김</span></li>
+      <li><span class="cmd c">context-engineering</span><span>Addy Osmani. 새 세션을 시작하거나 결과 품질이 떨어질 때 규칙 파일·맥락 구성을 점검</span></li>
+      <li><span class="cmd">/handoff</span><span>Matt Pocock. 대화를 다음 세션용 문서로 압축. <b>기본 저장 위치가 임시 폴더</b>라 docs/handoff.md로 옮겨 두기 (gstack은 /context-save · /context-restore)</span></li>
+    </ul>
+    <p class="why">순서 요약: 시작할 때 <b>/init → AGENTS.md</b>, 정할 때 <b>Spec Kit + grill-with-docs</b>, 세션을 끊을 때 <b>/handoff</b>, 끝낼 때 <b>learnings.md</b>.</p>
+  </div>
+  </div>
+  <div class="mfpane" id="mf-tree" role="tabpanel" aria-labelledby="mfb-tree" hidden>
+  <p class="lead">예시 프로젝트(회의록 요약 앱) 기준입니다. 시점을 누르면 그 단계까지 생긴 파일만 보이고, 그 단계에서 새로 생기거나 고치는 파일이 표시됩니다.</p>
+  <div class="treebox">
+    <div class="filters" role="group" aria-label="파일 트리 단계" id="tf">
+      <span class="lbl">시점</span>
+      <button type="button" id="t-all" data-t="all" aria-pressed="true">완성본</button>
+      <button type="button" id="t-0" data-t="0" aria-pressed="false">뼈대</button>
+      <button type="button" id="t-1" data-t="1" aria-pressed="false">스펙</button>
+      <button type="button" id="t-2" data-t="2" aria-pressed="false">설계</button>
+      <button type="button" id="t-3" data-t="3" aria-pressed="false">구현</button>
+      <button type="button" id="t-4" data-t="4" aria-pressed="false">검증</button>
+      <button type="button" id="t-5" data-t="5" aria-pressed="false">확장</button>
+    </div>
+    <span class="count" id="tcount"></span>
+    <ul class="tree" id="tree"></ul>
+    <p class="vf"><span class="sb">설계</span> 생기는 단계 · <span class="lt t">같이</span> <span class="lt c">코드</span> <span class="lt u">UI</span> <span class="lt p">발표</span> 누가 만드나 · <span class="prop">제안</span> 표준이 아니라 이 정리에서 제안하는 파일 · <span class="new">NEW</span> 이 단계에서 생김 · <span class="mod">수정</span> 이 단계에서 고침</p>
+  </div>
+  </div>
+</section>
+
+
+
+
+<section class="panel" id="combos" role="tabpanel" aria-labelledby="tab-combos">
+  <div class="sec-head">
+    <h2>만드는 것별 기본 세트</h2>
+    <p class="lead">위 워크플로는 기능이 여러 개인 웹앱 기준입니다. 작은 작업에 전부 붙이면 오히려 느려집니다.</p>
+  </div>
+  <div class="combo">
+    <div class="box"><h3>프로그램 (CLI · 백엔드)</h3>
+      <p><b>단계</b> 뼈대 → 스펙 → 설계 → 구현 → 검증, <span class="lt c">코드</span> 칸만</p>
+      <p><b>분리</b> 필요 없음 (UI가 없음)</p>
+      <p><b>파일</b> <span class="file">AGENTS.md</span> <span class="file">spec.md</span> <span class="file">plan.md</span> <span class="file">tasks.md</span> <span class="file">tests/</span></p>
+      <p class="why">절차형 묶음 하나와 TDD면 충분합니다.</p></div>
+    <div class="box"><h3>웹페이지 (랜딩 · 소개)</h3>
+      <p><b>단계</b> 레퍼런스(선택) → DESIGN.md → 블록 조합 → audit</p>
+      <p><b>분리</b> 필요 없음, 한 세션으로 (로직이 거의 없음)</p>
+      <p><b>파일</b> <span class="file">AGENTS.md</span> <span class="file">DESIGN.md</span> <span class="file">references.md</span> <span class="file">reports/audit.md</span></p>
+      <p class="why">디자인 방향 스킬 하나 + shadcn + <span class="cmd u">/impeccable audit</span></p></div>
+    <div class="box"><h3>웹앱 (기능 여러 개)</h3>
+      <p><b>단계</b> 위 워크플로 전체</p>
+      <p><b>분리</b> 구현 단계에서 코드 세션과 UI 세션을 나눔 (또는 <span class="file">.claude/agents/</span>에 서브에이전트 2개)</p>
+      <p><b>파일</b> 위 파일 트리 전체</p>
+      <p class="why">분리 효과가 가장 큽니다. 설계 단계의 contracts/와 tests/spec.md가 있어야 나눠도 끝에서 맞물립니다.</p></div>
+    <div class="box"><h3>발표 자료 (PPT)</h3>
+      <p><b>단계</b> 내용 → 설계 → 제작 → 렌더 검사 → PDF와 함께 배포</p>
+      <p><b>분리</b> 필요 없음, 한 세션으로</p>
+      <p><b>파일</b> <span class="file">outline.md</span> <span class="file">deck.pptx</span> 또는 <span class="file">index.html</span> <span class="file">deck.pdf</span> <span class="file">qa/</span></p>
+      <p class="why">받는 사람이 고쳐야 하면 <span class="cmd p">pptx</span>, 링크로 보여 주면 <span class="cmd p">frontend-slides</span>. 자세한 건 워크플로 탭의 발표 자료 트랙.</p></div>
+    <div class="box warn"><h3>공통 규칙</h3>
+      <ul>
+        <li>한 세션에 켜는 스킬은 4~5개 이하 (절차형 1, 디자인 방향 1, 컴포넌트 도구 1, 검사 1)</li>
+        <li>플러그인은 <span class="cmd">/plugin</span>에서 프로젝트마다 켜고 끄기</li>
+        <li>검증 안 된 추천이므로 같은 과제를 (1) 스킬 없이 (2) 섞어서 (3) 분리해서 만들어 비교하기</li>
+      </ul></div>
+  </div>
+  <h3>작업별 조합</h3>
+  <div class="combo">
+    <div class="box"><h3>A · 기존 프로젝트에 기능 추가 (코드만)</h3>
+      <div class="flowline"><span class="cmd c">/feature-dev</span><span class="ar">→</span><span class="cmd c">tdd</span><span class="ar">→</span><span class="cmd c">/qa</span></div>
+      <p class="why">공식 Feature Dev로 탐색·설계·리뷰 흐름을 잡고, 구현은 TDD로, 마지막에 실제 앱을 띄워 확인합니다.</p></div>
+    <div class="box"><h3>B · 새 서비스를 처음부터 (코드)</h3>
+      <div class="flowline"><span class="cmd c">/office-hours</span><span class="ar">→</span><span class="cmd c">/speckit.specify</span><span class="ar">→</span><span class="cmd c">/speckit.tasks</span><span class="ar">→</span><span class="cmd c">/speckit.converge</span></div>
+      <p class="why">만들 가치부터 따진 뒤 명세로 끝까지 관리합니다. 가볍게 가려면 Spec Kit 대신 OpenSpec.</p></div>
+    <div class="box"><h3>C · 화면이 있는 기능 (코드 + UI)</h3>
+      <div class="flowline"><span class="cmd c">/feature-dev</span><span class="ar">→</span><span>Nicelydone·SaaSFrame</span><span class="ar">→</span><span class="cmd u">/impeccable shape</span><span class="ar">→</span><span>shadcn MCP 블록</span><span class="ar">→</span><span class="cmd c">tdd</span><span class="ar">→</span><span class="cmd u">/impeccable audit</span><span>+</span><span>Vercel Skills</span></div>
+      <p class="why">코드 탐색과 화면 리서치를 같이 하고, DESIGN.md를 정한 뒤 블록으로 조립합니다. 로직은 TDD로, 화면은 감사로 마무리합니다.</p></div>
+    <div class="box"><h3>D · 돈 안 들이고 UI 시작</h3>
+      <ul><li>설계·검증 단계: Impeccable</li><li>구현 단계: shadcn 스킬 + shadcn MCP (다른 레지스트리도 연결 가능)</li><li>검증 단계: Vercel Agent Skills</li></ul>
+      <p class="why">뼈대 단계 라이브러리는 무료(shadcn·Ant Design·Tremor 중 하나). 스펙 단계는 Nicelydone·SaaSFrame의 무료 범위로 시작하고, 모바일 앱이면 Mobbin(유료)을 추가하세요.</p></div>
+    <div class="box"><h3>에이전트 지시문에 넣을 순서</h3>
+      <ol>
+        <li>코딩 전에 질문으로 빠진 조건을 채우고, 요구사항을 문서로 남길 것</li>
+        <li>화면이 있으면 레퍼런스 10장 이상을 모아 공통 패턴을 정리할 것</li>
+        <li>작업을 완료 기준이 있는 단위로 쪼개고, 계획과 DESIGN.md를 먼저 만들 것</li>
+        <li>로직은 테스트부터, 컴포넌트는 레지스트리 블록부터 찾을 것</li>
+        <li>끝내기 전에 실제 실행 확인, 독립 리뷰, 명세 대조, UI 감사를 할 것</li>
+      </ol></div>
+    <div class="box"><h3>E · 제품 소개 발표</h3>
+      <div class="flowline"><span class="file">spec.md</span><span class="ar">+</span><span class="file">DESIGN.md</span><span class="ar">→</span><span class="file">outline.md</span><span class="ar">→</span><span class="cmd p">pptx</span><span>또는</span><span class="cmd p">frontend-slides</span><span class="ar">→</span><span>렌더 QA</span><span class="ar">→</span><span class="file">deck.pdf</span></div>
+      <p class="why">앱의 명세와 디자인 규칙을 그대로 가져와 같은 브랜드로 만듭니다. 받는 사람이 고쳐야 하면 pptx, 링크로 보여 주면 frontend-slides.</p></div>
+    <div class="box"><h3>F · 디자이너가 Figma로 작업하는 팀</h3>
+      <div class="flowline"><span>Figma 원본</span><span class="ar">→</span><span class="cmd u">get_variable_defs</span><span class="ar">→</span><span class="file">DESIGN.md</span><span class="ar">→</span><span class="cmd u">Code Connect</span><span class="ar">→</span><span class="cmd u">get_design_context</span><span class="ar">→</span><span class="cmd u">get_screenshot</span><span>비교</span></div>
+      <p class="why">디자인 원본이 하나(Figma)로 정해져 있을 때 가장 효과가 큽니다. 토큰을 먼저 옮기고, 컴포넌트를 연결한 뒤 화면을 코드로 옮기면 생성 코드가 우리 컴포넌트를 씁니다.</p></div>
+    <div class="box warn"><h3>피해야 할 조합</h3>
+      <ul>
+        <li>Superpowers + gstack + pstack 동시 설치: 셋 다 전체 절차를 끌고 가려 해서 충돌</li>
+        <li>brainstorming + grill-me 동시: 같은 질문을 두 번 받음</li>
+        <li>Spec Kit + OpenSpec 동시: 명세 파일이 두 벌</li>
+        <li>디자인 방향 스킬 둘 이상 동시 (예: Impeccable + frontend-design): 디자인 방향 지시가 섞임</li>
+        <li>컴포넌트 라이브러리 두 개 (예: Ant Design + shadcn): 버튼·표 모양과 토큰이 두 벌</li>
+        <li>Remotion + HyperFrames 한 프로젝트: React와 HTML 중 하나로 통일</li>
+        <li>pptx + frontend-slides를 한 덱에: 디자인 규칙이 충돌, 받을 형식 하나로</li>
+        <li>Figma 원본 + Stitch 시안을 동시에 기준으로: 기준 디자인이 두 개가 됨</li>
+      </ul></div>
+  </div>
+</section>
+
+<section class="panel" id="finder" role="tabpanel" aria-labelledby="tab-finder">
+  <div class="sec-head">
+    <h2>지금 이 상황이면 이 스킬</h2>
+    <p class="lead">지금 단계를 누르고, 상황을 누르면 설치 명령과 복사 버튼이 바로 펼쳐집니다.</p>
+  </div>
+  <div class="filters" role="group" aria-label="갈래 필터" id="lf">
+    <span class="lbl">갈래</span>
+    <button type="button" id="l-all" data-l="all" aria-pressed="true">전체</button>
+    <button type="button" id="l-c" data-l="c" aria-pressed="false">코드</button>
+    <button type="button" id="l-u" data-l="u" aria-pressed="false">UI</button>
+    <button type="button" id="l-p" data-l="p" aria-pressed="false">발표</button>
+  </div>
+  <span class="count" id="count"></span>
+  <div class="fgroups" id="fgroups"></div>
+  <div class="empty" id="fempty" hidden><span>조건에 맞는 상황이 없어요.</span><button type="button" id="freset">필터 초기화</button></div>
+</section>
+
+
+<div class="panel" id="sources" role="tabpanel" aria-labelledby="tab-sources">
+<section id="about">
+  <div class="sec-head"><h2>이 페이지에 대해</h2>
+  <p class="lead">프로그램·웹앱·웹페이지·발표 자료를 만들 때 꺼내 보는 <b>치트시트</b>입니다. <b>빠른 찾기</b>에서 지금 상황으로 스킬을 찾고, <b>워크플로</b>에서 단계별로 <span class="lt c">코드</span>와 <span class="lt u">UI</span>가 <span class="lt t">같이</span>·따로 할 일을, <b>Memory File</b>에서 파일별 명령과 복사용 프롬프트를 봅니다.</p>
+  </div>
+  <div class="src"><span>출처:</span>
+    <a href="https://youtu.be/nTwbveOwuS4" target="_blank" rel="noopener">AI 코딩 스킬 7개 비교</a>
+    <a href="https://youtu.be/Juct5F2xzws" target="_blank" rel="noopener">디자인·모션 도구 TOP 14</a>
+    <a href="https://youtu.be/kQWomxDOIuw" target="_blank" rel="noopener">클로드 직무 플러그인 11개</a>
+    <span>+ 사용자 제공 UI/UX 정리 (하단 출처)</span></div>
+</section>
+<section>
+  <div class="sec-head"><h2>이 정리를 얼마나 믿어도 되나</h2></div>
+  <div class="honest">
+    <div><b>출처</b><span>영상 3편, UI/UX 블로그 정리글 1개, Impeccable 소개 글, shadcn 공식 문서, 각 저장소 README</span></div>
+    <div><b>확인한 것</b><span>스킬·명령 이름은 저장소 폴더와 README로 대조. "README 확인" 표시 명령은 README와 일치</span></div>
+    <div><b>한계</b><span>어느 스킬도 직접 설치해 비교 테스트하지 않았음. 스타 수는 인기일 뿐 품질 보장 아님</span></div>
+    <div><b>가장 확실한 방법</b><span>같은 과제를 스킬 없이 한 번, 후보 스킬로 한 번씩 만들어 결과물 비교</span></div>
+  </div>
+</section>
+
+<section id="trimlog">
+  <div class="sec-head"><h2>2026-11-04 수정</h2>
+    <p class="lead">워크플로에 <b>절차형 묶음 선택</b>을 추가해 한 흐름에 여러 묶음 명령이 섞이던 문제를 고쳤습니다 (Superpowers를 고르면 겹치는 grill-me 대신 brainstorming). 검증 단계 통과 조건을 묶음과 상관없이 쓸 수 있게 바꿨습니다. 빠른 찾기 카드가 상황과 다른 설명을 보여 주던 문제와 UI/UX Pro Max 출처 표시를 고쳤습니다. Vercel Agent Skills·shadcn/ui·Playwright 설치 명령을 채우고, 내장 기능과 웹 서비스는 "설치 필요 없음"으로 구분했습니다. md 치트시트 탭은 <b>Memory File</b>로 바꾸고 Law · 빠른 찾기 · 맥락 스킬 · 단계별 파일트리로 나눴습니다. Law에는 한컴테크 글과 Claude Code 공식 문서를 참고해, AGENTS.md를 WHAT·WHY·HOW·DONE 템플릿으로 바꾸고 settings.json(권한·훅)과 UI 폴더용 CLAUDE.md를 넣었습니다.</p></div>
+  <div class="sec-head"><h2>무엇을 왜 줄였나</h2>
+    <p class="lead">대시보드를 짧게 만들기 위해 32건을 정리했습니다. 기준은 네 가지입니다. <b>① 같은 단계·같은 갈래에서 역할이 겹치면 더 강한 하나만</b>, <b>② 설치 명령을 확인하지 못했거나 유료·제한이 큰 것</b>, <b>③ 같은 스킬을 여러 단계에 반복한 것</b>, <b>④ 자리가 맞지 않는 것</b>. 지운 내용은 아티팩트 버전 기록(이전 버전)에 그대로 남아 있습니다.</p></div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>항목</th><th>있던 곳</th><th>결정</th><th>이유</th><th>대신 쓸 것</th></tr></thead>
+    <tbody>
+      <tr><td><b>Taste Skill</b></td><td>뼈대·설계 단계 UI</td><td><span class="dec">삭제</span></td><td>디자인 방향 스킬 5개가 같은 일을 함. 영상 설명(다이얼 3개)도 이미 옛 방식</td><td>Impeccable 또는 frontend-design</td></tr>
+      <tr><td><b>Hallmark (+ audit)</b></td><td>뼈대·설계·검증 단계 UI</td><td><span class="dec">삭제</span></td><td>방향 제안은 Impeccable, AI 티 검사는 /impeccable audit와 겹침</td><td>/impeccable audit</td></tr>
+      <tr><td><b>MUI</b></td><td>뼈대 단계 UI</td><td><span class="dec">삭제</span></td><td>업무용 컴포넌트 라이브러리 역할이 Ant Design과 겹침</td><td>Ant Design</td></tr>
+      <tr><td><b>brainstorming (Superpowers)</b></td><td>스펙 단계 코드</td><td><span class="dec">행 삭제</span></td><td>질문형 스킬 3개가 중복. Superpowers를 고르면 자동으로 실행됨</td><td>grill-me</td></tr>
+      <tr><td><b>interview-me · idea-refine</b></td><td>스펙 단계 코드</td><td><span class="dec">삭제</span></td><td>grill-me와 같은 역할</td><td>grill-me</td></tr>
+      <tr><td><b>how · why (pstack)</b></td><td>스펙 단계 코드</td><td><span class="dec">삭제</span></td><td>기존 코드 탐색이 /feature-dev와 겹침</td><td>/feature-dev</td></tr>
+      <tr><td><b>Refero</b></td><td>스펙 단계 UI</td><td><span class="dec">삭제</span></td><td>평가가 출처마다 갈리고 Mobbin·Nicelydone과 겹침</td><td>Nicelydone·SaaSFrame(웹), Mobbin(모바일)</td></tr>
+      <tr><td><b>Awwwards·Godly / Land-book·Lapa Ninja</b></td><td>스펙 단계 UI</td><td><span class="dec">합침</span></td><td>둘 다 랜딩·브랜드 분위기 참고용</td><td>Awwwards · Godly · Land-book 한 줄</td></tr>
+      <tr><td><b>FigJam 다이어그램</b></td><td>스펙 단계 UI</td><td><span class="dec">삭제</span></td><td>선택 기능이고 Figma MCP는 뼈대·설계·구현·검증 단계에 이미 있음</td><td>Figma MCP</td></tr>
+      <tr><td><b>planning-and-task-breakdown</b></td><td>설계 단계 코드</td><td><span class="dec">삭제</span></td><td>writing-plans, /speckit.tasks와 겹침</td><td>/speckit.tasks</td></tr>
+      <tr><td><b>feature-dev (설계·구현 행)</b></td><td>설계·구현 단계 코드</td><td><span class="dec">행 삭제</span></td><td>같은 스킬을 단계마다 반복. 탐색(스펙 단계)과 리뷰(검증 단계)만 남김</td><td>/feature-dev</td></tr>
+      <tr><td><b>wayfinder</b></td><td>설계 단계 코드</td><td><span class="dec">삭제</span></td><td>아주 큰 프로젝트 전용이라 쓰임이 좁음</td><td>Spec Kit 작업 목록</td></tr>
+      <tr><td><b>Interface Design</b></td><td>설계 단계 UI</td><td><span class="dec">삭제</span></td><td>설치 명령 미확인, DESIGN.md 방식과 겹침</td><td>DESIGN.md 템플릿</td></tr>
+      <tr><td><b>design-skills</b></td><td>설계 단계 UI</td><td><span class="dec">삭제</span></td><td>색 값 오류가 많음. 좋은 점(MUST/SHOULD/NEVER)은 DESIGN.md 템플릿에 이미 반영</td><td>DESIGN.md 템플릿</td></tr>
+      <tr><td><b>Open Design (앱 트랙)</b></td><td>설계 단계 UI</td><td><span class="dec">삭제</span></td><td>Stitch·Figma MCP와 역할이 겹침. 발표 트랙에는 남김</td><td>Stitch / Figma MCP</td></tr>
+      <tr><td><b>poteto-mode</b></td><td>구현 단계 코드</td><td><span class="dec">삭제</span></td><td>pstack 자체의 시작점이라 단계 항목으로는 중복</td><td>뼈대 단계 pstack</td></tr>
+      <tr><td><b>improve-codebase-architecture</b></td><td>구현 단계 코드</td><td><span class="dec">삭제</span></td><td>새 기능을 만드는 흐름과 거리가 멂</td><td>—</td></tr>
+      <tr><td><b>registry.directory MCP</b></td><td>구현 단계 UI</td><td><span class="dec">삭제</span></td><td>설치 명령 미확인. shadcn MCP에 레지스트리를 추가하면 비슷하게 가능</td><td>shadcn MCP</td></tr>
+      <tr><td><b>21st.dev Magic MCP</b></td><td>구현 단계 UI</td><td><span class="dec">삭제</span></td><td>API 키가 필요하고 React Bits·shadcn과 겹침</td><td>React Bits</td></tr>
+      <tr><td><b>code-review-and-quality (Addy)</b></td><td>검증 단계 코드</td><td><span class="dec">축소</span></td><td>코드 리뷰는 /review·feature-dev와 겹침. 보안 점검만 남김</td><td>security-and-hardening</td></tr>
+      <tr><td><b>benchmark (gstack)</b></td><td>검증 단계 코드</td><td><span class="dec">삭제</span></td><td>웹 성능 회귀 전용이라 performance-optimization과 겹침</td><td>performance-optimization</td></tr>
+      <tr><td><b>OpenSpec</b></td><td>확장 단계 코드</td><td><span class="dec">행 삭제</span></td><td>확장 단계가 아니라 뼈대 단계 대안. Spec Kit 설명에 언급은 남김</td><td>Spec Kit</td></tr>
+      <tr><td><b>Claude Motion</b></td><td>확장 단계 UI</td><td><span class="dec">삭제</span></td><td>Team/Enterprise 베타라 대부분 쓸 수 없음</td><td>HyperFrames</td></tr>
+      <tr><td><b>awesome-opus5-5-videos</b></td><td>확장 단계 UI</td><td><span class="dec">삭제</span></td><td>도구가 아니라 프롬프트 모음</td><td>—</td></tr>
+      <tr><td><b>codex-ppt-skill</b></td><td>발표 뼈대 단계</td><td><span class="dec">삭제</span></td><td>설치 미확인, 슬라이드가 그림이라 글자 수정 불가, 유료 API</td><td>pptx</td></tr>
+      <tr><td><b>guizang-ppt-skill · dashiAI-ppt-skill</b></td><td>발표 뼈대 단계</td><td><span class="dec">삭제</span></td><td>frontend-slides와 같은 HTML 덱이고 AGPL 라이선스 부담</td><td>frontend-slides</td></tr>
+      <tr><td><b>Marp</b></td><td>발표 뼈대 단계</td><td><span class="dec">삭제</span></td><td>Slidev와 같은 Markdown 슬라이드. Slidev가 공식 스킬·MCP 제공</td><td>Slidev</td></tr>
+      <tr><td><b>UI UX Pro Max slides · HyperFrames slideshow</b></td><td>발표 뼈대 단계</td><td><span class="dec">삭제</span></td><td>이미 그 도구를 쓰는 경우에만 의미</td><td>Claude Slides</td></tr>
+      <tr><td><b>break-ui 발상</b></td><td>발표 검증 단계</td><td><span class="dec">삭제</span></td><td>렌더 검사와 겹침</td><td>pptx QA 스크립트</td></tr>
+      <tr><td><b>직무 플러그인 탭</b></td><td>탭</td><td><span class="dec">탭 삭제</span></td><td>코딩과 직접 관련이 적음. 쓸 만한 아이디어 3개는 확장 단계 한 줄로 옮김</td><td>확장 단계 '직무 플러그인 아이디어'</td></tr>
+      <tr><td><b>파일 트리 탭의 역할표·템플릿 묶음</b></td><td>파일 트리 탭</td><td><span class="dec">합침</span></td><td>같은 파일 설명이 트리·표·템플릿 세 곳에 흩어져 있었음</td><td>Memory File 카드 (트리는 접어서 아래에)</td></tr>
+      <tr><td><b>빠른 찾기 상황 16개</b></td><td>빠른 찾기</td><td><span class="dec">삭제</span></td><td>위에서 뺀 도구를 가리키던 상황</td><td>—</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<footer>
+  <span>출처</span>
+  <ul>
+    <li>민둥이 영상: <a href="https://youtu.be/nTwbveOwuS4" target="_blank" rel="noopener">유명 AI 코딩 스킬 7개</a> · <a href="https://youtu.be/Juct5F2xzws" target="_blank" rel="noopener">디자인·모션 도구 TOP 14</a> · <a href="https://youtu.be/kQWomxDOIuw" target="_blank" rel="noopener">클로드 11명의 전문가 도구</a></li>
+    <li><a href="https://pasqualepillitteri.it/en/news/576/claude-code-skills-design-uiux-guide" target="_blank" rel="noopener">The 18 Best Claude Code Skills for UI/UX Design</a> · <a href="https://emelia.io/hub/impeccable-ai-design-skill" target="_blank" rel="noopener">Impeccable 가이드</a></li>
+    <li><a href="https://ui.shadcn.com/docs/skills.md" target="_blank" rel="noopener">shadcn Skills</a> · <a href="https://ui.shadcn.com/docs/mcp" target="_blank" rel="noopener">shadcn MCP</a> · <a href="https://www.shadcnblocks.com/docs/shadcn-mcp/overview" target="_blank" rel="noopener">Shadcnblocks MCP</a> · <a href="https://lobehub.com/mcp/microck-registry-directory-mcp" target="_blank" rel="noopener">registry.directory MCP</a> · <a href="https://mcp.directory/blog/21st-dev-magic-mcp-complete-guide-2026" target="_blank" rel="noopener">21st.dev Magic MCP</a></li>
+    <li><a href="https://dev.classmethod.jp/articles/mobbin-mcp-setup-claude-code/" target="_blank" rel="noopener">Mobbin MCP 셋업</a> · <a href="https://awesome.ecosyste.ms/projects/github.com%2Freferodesign%2Frefero_skill" target="_blank" rel="noopener">Refero Skill</a></li>
+    <li>레퍼런스·라이브러리: <a href="https://nicelydone.club/pages/dashboard" target="_blank" rel="noopener">Nicelydone 대시보드</a> · <a href="https://www.saasframe.io/categories/dashboard" target="_blank" rel="noopener">SaaSFrame 대시보드</a> · <a href="https://www.lazyweb.com/compare/mobbin-vs-refero" target="_blank" rel="noopener">Mobbin vs Refero 비교 (경쟁사 작성)</a> · <a href="https://ant.design/docs/react/mcp.md" target="_blank" rel="noopener">Ant Design MCP</a> · <a href="https://mui.com/x/introduction/mcp/" target="_blank" rel="noopener">MUI MCP</a> · <a href="https://adminlte.io/blog/tremor-dashboard-templates/" target="_blank" rel="noopener">Tremor 템플릿 정리</a> · <a href="https://github.com/ihlamury/design-skills" target="_blank" rel="noopener">ihlamury/design-skills</a></li>
+    <li>Figma: <a href="https://help.figma.com/hc/en-us/articles/35281350665623-Claude-Code-and-Figma-Set-up-the-MCP-server" target="_blank" rel="noopener">Claude Code와 Figma MCP 설정</a> · <a href="https://help.figma.com/hc/en-us/articles/32132100833559-Guide-to-the-Dev-Mode-MCP-Server" target="_blank" rel="noopener">Figma MCP 서버 가이드</a></li>
+    <li>PPT: <a href="https://opendesigner.io/blog/claude-ppt-skills" target="_blank" rel="noopener">Claude PPT skills 정리 (Open Designer)</a> · <a href="https://github.com/anthropics/skills/tree/main/skills/pptx" target="_blank" rel="noopener">anthropics/skills pptx</a> · <a href="https://github.com/zarazhangrui/frontend-slides" target="_blank" rel="noopener">frontend-slides</a> · <a href="https://github.com/hugohe3/ppt-master" target="_blank" rel="noopener">ppt-master</a> · <a href="https://sli.dev/guide/work-with-ai" target="_blank" rel="noopener">Slidev와 AI</a></li>
+    <li>저장소: obra/superpowers · garrytan/gstack · mattpocock/skills · addyosmani/agent-skills · cursor/plugins(pstack) · anthropics/claude-code(feature-dev) · github/spec-kit · anthropics/skills · pbakaus/impeccable · nextlevelbuilder/ui-ux-pro-max-skill · Leonxlnx/taste-skill · Nutlope/hallmark · emilkowalski/skills · heygen-com/hyperframes · nexu-io/open-design</li>
+  </ul>
+  <span>워크플로 단계 구성, 같이/따로 구분, 조합 A~D, 지시문 순서, 피해야 할 조합은 위 자료를 바탕으로 한 정리자 의견입니다. 파일 트리의 specs/&lt;기능&gt;/ 아래 구성(spec·plan·research·data-model·contracts·tasks·checklists)과 .specify/memory/constitution.md는 Spec Kit 템플릿에서 확인한 규칙이고, "제안" 표시 파일과 [CODE]/[UI] 태그는 이 정리에서 덧붙인 것입니다.</span>
+</footer>
+</div>
+</div>
+
+<dialog id="skdlg" aria-labelledby="skdlg-t">
+  <div class="dlg-h"><h3 id="skdlg-t"></h3><button type="button" id="skdlg-x" class="dlg-x">닫기</button></div>
+  <div id="skdlg-b"></div>
+</dialog>
+
+<script>
+/* ---------- 단계 데이터 ---------- */
+// tool: [이름, 출처, 설명, 명령(배열, 블록 코드면 {code}), 비용, 확인, 경고]
+const STEPS = [
+ {n:0, t:"뼈대 고르기", opt:false, sum:["절차형 묶음 하나","방향 스킬 하나"],
+  intro:"설치 단계입니다. <b>코드 쪽 절차형 묶음은 하나만</b>, <b>UI 쪽 방향 스킬도 하나만</b> 고르고, 모자란 부분만 골라쓰기형으로 보완합니다. 아래 단계들은 여기서 설치한 스킬의 명령을 씁니다.",
+  code:{h:"절차형 묶음 (하나만) + 골라쓰기형", io:[["고르는 기준","정해진 절차를 따를지, 필요한 것만 쓸지"]], tools:[
+   ["Superpowers","obra · 절차형","정해진 절차(브레인스토밍→계획→TDD→리뷰)를 체계적으로. 설치하면 상황에 맞는 스킬이 자동 적용",[{code:"/plugin marketplace add obra/superpowers-marketplace\n/plugin install superpowers@superpowers-marketplace"}],"free","README 확인"],
+   ["gstack","Garry Tan · 절차형","제품 방향 → 기술 설계 → 실제 QA까지 여러 관점 검토. 시작은 /office-hours",[{code:"git clone --single-branch --depth 1 https://github.com/garrytan/gstack.git ~/gstack\ncd ~/gstack && ./setup --host auto"}],"free","README 확인"],
+   ["pstack","Lauren Tan · 절차형","설계안 비교(arena), 다른 모델 교차 리뷰(interrogate), 실행 증거 중시. 시작은 poteto-mode",[{code:"/plugin marketplace add cursor/plugins\n/plugin install pstack@cursor-plugins"}],"free","README 확인"],
+   ["Feature Dev","Anthropic 공식 · 절차형","기존 코드베이스에 기능 하나를 탐색→설계→구현→리뷰 한 흐름으로",[{code:"/plugin install feature-dev@claude-plugins-official"}],"free","미검증 (공식 마켓플레이스 이름 기준)"],
+   ["GitHub Spec Kit","github · 절차형(SDD)","명세서를 기준으로 개발 전체 관리. 가볍게 가려면 OpenSpec",[{code:"uv tool install specify-cli\nspecify init <프로젝트> --integration <도구>"}],"free","README 확인"],
+   ["Matt Pocock skills","골라쓰기형","질문·TDD·아키텍처 개선 등 필요한 것만 기존 방식에 추가",[{code:"claude plugin install mattpocock-skills@claude-plugins-official"}],"free","README 확인"],
+   ["Addy Osmani agent-skills","골라쓰기형","요구사항~배포 실무 원칙, 보안·성능·브라우저 테스트까지",[{code:"/plugin marketplace add addyosmani/agent-skills\n/plugin install agent-skills@addy-agent-skills"}],"free","README 확인"]
+  ]},
+  ui:{h:"디자인 방향 스킬 + 컴포넌트 라이브러리 (각각 하나만)", io:[["방향 스킬","처음이면 frontend-design, 검사까지 한 번에면 Impeccable"],["라이브러리","표·폼 많은 관리자면 Ant Design, 차트 대시보드면 Tremor, 자유롭게 고치려면 shadcn/ui"]], tools:[
+   {grp:"디자인 방향 스킬 (하나만)"},
+   ["Impeccable","pbakaus · 추천","frontend-design 확장판. 방향 잡기부터 검증 단계 감사(audit)까지 이어짐",[{code:"npx impeccable install"}],"free","README 확인 (원 정리: npx skills add pbakaus/impeccable)"],
+   ["frontend-design","Anthropic 공식","콘셉트 먼저 → 폰트·색·배치를 의도적으로. 가장 무난한 출발점",[{code:"/plugin marketplace add anthropics/skills\n/plugin install example-skills@anthropic-agent-skills"}],"free","README 확인","원 정리의 \"claude plugin add anthropic/frontend-design\"은 저장소와 맞지 않음. example-skills 묶음에 포함"],
+   ["UI/UX Pro Max","nextlevelbuilder","업종을 말하면 스타일·색·폰트·차트를 골라 디자인 시스템으로. Flutter·SwiftUI 지원",[{code:"/plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill\n/plugin install ui-ux-pro-max@ui-ux-pro-max-skill"}],"free","README 확인"],
+   {grp:"컴포넌트 라이브러리 (하나만, 실제 화면의 뼈대)"},
+   ["Ant Design (+ Ant Design Pro)","ant.design · Alibaba","표·폼·트리 등 데이터가 많은 업무 화면 컴포넌트가 무료로 다 있음. Ant Design Pro는 관리자 대시보드 템플릿. 공식 MCP로 컴포넌트 문서·예제·토큰을 조회",[{code:"claude mcp add antd -- npx -y @ant-design/cli mcp"}],"free","공식 문서 확인 (설정을 claude mcp 명령으로 옮김, cli v6.3.5 이상)"],
+   ["Tremor","tremor.so · Vercel","차트·KPI 카드 중심 분석 대시보드. Blocks 300개+와 템플릿(Dashboard, Insights 등)이 무료로 풀림",["blocks.tremor.so"],"free","검색 기준"],
+   ["shadcn/ui (+ shadcn-admin)","shadcn","코드를 복사해 와서 직접 고치는 방식이라 디자인 자유도가 가장 높음. 블록 설치는 구현 단계의 shadcn MCP",["shadcn-admin",{code:"npx shadcn@latest init"}],"free","공식 문서 기준 (components.json 생성)"],
+   {grp:"디자인 원본 연결 (디자이너·Figma 파일이 있을 때)"},
+   ["Figma MCP","Figma 공식","에이전트가 Figma 파일을 직접 읽고 씀. 디자인 토큰 읽기(설계 단계), 화면을 코드로 옮기기(구현 단계), 디자인과 구현 비교(검증 단계)에 쓰임",[{code:"claude mcp add --transport http figma-remote-mcp https://mcp.figma.com/mcp"},"/mcp 에서 Figma 로그인"],"mix","Figma 도움말 확인 · 원격 서버는 모든 플랜, 무료·보기 좌석은 호출 수 제한","디자인 원본이 Figma에 없고 디자이너도 없으면 굳이 필요 없음 (Stitch·Impeccable로 충분)"]
+  ]}},
+ {n:1, t:"스펙·리서치", sum:["질문으로 요구사항 확정","실제 화면 10~20장 수집"],
+  intro:"무엇을, 왜 만드는지 확정합니다. 영상 예시: 회의록을 요약하고 할 일을 뽑아 담당자를 배정하는 서비스.",
+  code:{h:"질문으로 스펙 확정", io:[["입력","아이디어, 기존 코드"],["결과물","확정된 요구사항 + 예외 규칙 문서"]], tools:[
+   ["grill-me · grill-with-docs","Matt Pocock","안 정한 부분(담당자 없으면? 여러 명이면?)을 집요하게. with-docs는 용어·결정을 문서로",["grill-me","grill-with-docs"]],
+   ["office-hours","gstack","이걸 만들 필요가 있나부터. 진짜 문제(결정이 실행 안 됨)를 찾음",["/office-hours"]],
+   ["specify → clarify","Spec Kit","요구사항을 명세로, 빠진 규칙(담당자 없으면 임의 배정 금지)을 명시",["/speckit.specify","/speckit.clarify"]],
+   ["feature-dev (탐색)","Feature Dev","기존 코드 구조를 먼저 탐색하고 불분명한 점은 질문",["/feature-dev"]],
+  ]},
+  ui:{h:"레퍼런스 리서치", io:[["입력","만들 화면 종류와 내용 (예: 매출 분석 대시보드)"],["결과물","비슷한 실제 화면 10~20장 + 공통 패턴 메모"]], tools:[
+   {grp:"① 실제 서비스 화면 (웹 대시보드는 여기부터)"},
+   ["Nicelydone","nicelydone.club","실제 SaaS 화면을 페이지 종류별로 모음. 대시보드 예시 800개+, 앱별 컴포넌트 페이지",["nicelydone.club/pages/dashboard"],"mix","검색 기준 · 일부 유료"],
+   ["SaaSFrame","saasframe.io","SaaS 웹사이트와 제품 화면을 회사·카테고리·패턴별로. 대시보드 160개+, 분석 화면 60개+",["saasframe.io/categories/dashboard"],"mix","검색 기준 · 상당수 Pro"],
+   ["Mobbin","mobbin.com","iOS·Android·웹 앱 화면 60만 장+와 사용자 흐름. 모바일 흐름이 강점이고 웹 SaaS는 상대적으로 약하다는 평가. MCP는 베타",[{code:"claude mcp add mobbin --scope user --transport http https://api.mobbin.com/mcp"}],"paid","원 정리 기준 · 유료"],
+   {grp:"② 영감 갤러리 (분위기·콘셉트 참고)"},
+   ["Dribbble · Behance","dribbble.com · behance.net","디자이너 시안 모음. 대시보드 콘셉트가 많지만 실제로 구현하기 어려운 그림도 많음",[],"free","","실제 데이터·상태(빈 화면, 오류)가 빠진 시안이 대부분"],
+   ["Awwwards · Godly · Land-book","awwwards.com · godly.website · land-book.com","수상작·화제작 웹사이트와 랜딩 페이지 모음. 랜딩·브랜드 분위기 참고",[],"free"],
+   {grp:"③ 움직임"},
+   ["Keyframe Gallery","keyframe.gallery","실제 서비스의 화면 전환·메뉴·버튼 반응 모음 (움직임 레퍼런스)",[],"free"],
+  ]}},
+ {n:2, t:"설계", sum:["작업 분해 + 계획 검토","화면 스펙 + DESIGN.md"],
+  intro:"요구사항을 작업 단위로 쪼개고 검토합니다. UI는 공통 패턴을 \"설명이 아니라 스펙\"으로 바꾸고 색·폰트·간격을 토큰으로 고정합니다.",
+  code:{h:"계획 세우기와 검토", io:[["입력","spec.md"],["결과물","완료 기준·순서가 있는 작업 목록, 검토된 설계"]], tools:[
+   ["writing-plans","Superpowers","수정할 파일, 작성할 테스트까지 구체적으로. AI가 길을 잃지 않게",["writing-plans"]],
+   ["plan → tasks","Spec Kit","기술 구조 → 작업 목록. 요구 기능이 빠지지 않게 연결",["/speckit.plan","/speckit.tasks"]],
+   ["plan 리뷰 3종","gstack","제품 방향 / 기술·예외 / 사용자 경험(잘못 배정 시 복구)을 따로 검토",["/plan-ceo-review","/plan-eng-review","/plan-design-review"]],
+   ["architect · arena","pstack","타입·인터페이스·모듈 구조 먼저. arena는 여러 에이전트 설계안 절충",["architect","arena"]],
+   ["성능 설계 (plan.md에 직접)","스킬보다 계획 문서","데이터가 몇 건까지 늘어나는지, 반복문 안에서 DB·API를 부르지 않는지(N+1), 정렬·검색을 몇 번 하는지 적기. 대안이 여럿이면 arena로 비교",[],"free","","계획에서 방향은 정하되, 실제 병목은 검증 단계 측정으로 확인"]
+  ]},
+  ui:{h:"화면 스펙과 디자인 규칙", io:[["입력","스펙 단계 레퍼런스와 패턴 메모"],["결과물","화면 스펙(구성·컴포넌트·상태) + DESIGN.md 토큰"]], tools:[
+   ["Impeccable","shape · init · document","방향 잡기, DESIGN.md 작성",["/impeccable shape","/impeccable document"]],
+   ["UI/UX Pro Max","nextlevelbuilder","업종 규칙을 디자인 시스템으로 묶음",["ui-ux-pro-max","design-system"]],
+   ["Google Stitch","stitch.withgoogle.com","말로 앱 화면 시안 여러 장 + 클릭 프로토타입 → DESIGN.md 또는 MCP로 전달",[],"free"],
+   ["Figma MCP (디자인 원본 → DESIGN.md)","Figma 공식","Figma의 변수·스타일을 읽어 DESIGN.md 토큰으로 옮김. 이미 있는 컴포넌트를 찾아 재사용. 디자이너 확인용 시안을 Figma에 만들 수도 있음",["get_variable_defs","search_design_system"],"mix","","Figma 원본과 Stitch 시안을 동시에 기준으로 삼지 말 것"],
+  ]}},
+ {n:3, t:"구현·조합", sum:["TDD·작은 단위로 구현","블록 조합 + 움직임"],
+  intro:"코드는 테스트부터 또는 기능 하나씩 완성하는 방식 중 하나로 정합니다. 화면은 처음부터 그리지 않고 검증된 블록을 조합한 뒤, 필요하면 움직임을 넣습니다.",
+  code:{h:"구현 방식", io:[["입력","설계 단계 작업 목록"],["결과물","테스트가 통과하는 코드"]], tools:[
+   ["TDD","Superpowers · Matt Pocock","테스트 작성 → 실패 확인 → 구현해서 통과",["test-driven-development","tdd"]],
+   ["subagent-driven-development","Superpowers","작은 작업마다 새 서브에이전트에 맡겨 맥락 오염 방지",["subagent-driven-development"]],
+   ["incremental-implementation","Addy Osmani","기능 하나를 끝까지 완성하고 다음으로",["incremental-implementation"]],
+   ["implement","Spec Kit","tasks.md의 순서·의존 관계대로",["/speckit.implement"]],
+  ]},
+  ui:{h:"블록 조합과 움직임", io:[["입력","screens.md + DESIGN.md"],["결과물","동작하는 화면 + 정돈된 인터랙션"]], tools:[
+   {grp:"블록 조합"},
+   ["shadcn 공식 스킬","shadcn-ui/ui","디자인 감각이 아니라 shadcn을 정확히 쓰는 법 (space-x/y 대신 gap-*, 패키지 매니저 맞추기)",[{code:"npx skills add shadcn/ui"}],"free","원 정리 기준","components.json 있는 프로젝트에서만 의미. 서드파티 말고 공식 저장소에서"],
+   ["shadcn MCP","공식","레지스트리 전체에서 블록 검색·설치. Shadcnblocks(500개+ 섹션) 연결",[{code:"npx shadcn@latest mcp"}],"free","원 정리 기준"],
+   ["Figma MCP (화면 → 코드)","Figma 공식","프레임 링크를 주면 디자인 정보를 받아 코드로 옮김. 결과는 참고용이라 프로젝트 컴포넌트로 바꿔 써야 함. Code Connect로 Figma 컴포넌트와 코드 컴포넌트(shadcn·Ant Design)를 연결해 두면 진짜 컴포넌트로 생성",["get_design_context","Code Connect"],"mix"],
+   ["React Bits","reactbits.dev","글자 등장·마우스 배경·3D 카드 등 효과 215개+",[],"free"],
+   {grp:"움직임 (선택)"},
+   ["Emil Kowalski skills","emilkowalski","넣을 곳 찾기 → 만들기 → 과한 것 빼기. 실제 사례는 Keyframe Gallery로 지시",["find-animation-opportunities","animate","remove-animations",{code:"npx skills@latest add emilkowalski/skills"}],"free","README 확인"]
+  ]}},
+ {n:4, t:"검증·다듬기", sum:["실행 확인 + 독립 리뷰 + 명세 대조","디자인 감사 + 접근성"],
+  intro:"빌드 성공은 완료가 아닙니다. 영상 예시처럼 화면엔 김대리, 알림은 이과장에게 가는 버그는 앱을 실제로 띄워야 보입니다.",
+  code:{h:"코드 검증", io:[["입력","구현 단계 코드"],["결과물","요구사항을 다 채운, 리뷰 통과한 코드"]], tools:[
+   ["review · qa","gstack","코드 검토와 실제 앱 실행 확인을 구분",["/review","/qa"]],
+   ["interrogate","pstack","서로 다른 모델이 독립 리뷰, 공통 지적은 중요 신호. 재현→수정→재확인 증거",["interrogate"]],
+   ["feature-dev (리뷰)","Feature Dev","리뷰 에이전트 3개 병렬: 단순성·중복 / 버그·정확성 / 프로젝트 규칙",["/feature-dev"]],
+   ["리뷰 + 완료 전 검증","Superpowers","요구사항 준수와 품질을 따로, 완료 선언 전 증거 확인",["requesting-code-review","verification-before-completion"]],
+   ["security-and-hardening","Addy Osmani","보안 점검: 입력 검증, 인증·권한, 비밀값 노출",["security-and-hardening"]],
+   ["analyze · converge","Spec Kit","명세↔계획 모순 점검, 못 채운 요구사항을 다시 작업 목록에",["/speckit.analyze","/speckit.converge"]],
+   {grp:"성능·효율 (측정 → 병목 → 수정)"},
+   ["performance-optimization","Addy Osmani","프론트·백엔드·쿼리·DB 성능. 성능 목표가 있거나 느려졌을 때, N+1 쿼리, 프로파일링으로 병목 찾기",["performance-optimization"],"free","저장소 폴더 확인"],
+   ["benchmark-checklist · explain-the-number","pstack","측정한 숫자를 믿기 전 점검: 반복해도 같은지, 정말 그 작업을 잰 건지, 무엇이 속도를 막는지",["benchmark-checklist","principle-explain-the-number"],"free","저장소 폴더 확인","자동 실행 안 됨, 이름으로 직접 불러야 함"],
+   ["simplify","Claude Code 내장","바뀐 코드의 중복·불필요한 계산을 찾아 단순하고 효율적으로 정리 (버그 찾기는 /code-review)",["/simplify"],"free","이 환경의 내장 스킬 기준"]
+  ]},
+  ui:{h:"디자인 다듬기와 검사", io:[["입력","구현 단계 화면"],["결과물","출시 가능한 UI + 검사 결과"]], tools:[
+   ["Impeccable 명령","추천 조합의 디자인 쪽","critique로 위치 찾기 → bolder/quieter → polish → audit. 자동 검사는 detect",["/impeccable critique","/impeccable bolder","/impeccable quieter","/impeccable polish","/impeccable audit","npx impeccable detect src/"],"free","README 확인"],
+   ["Vercel Agent Skills","vercel-labs · 추천 조합의 코드 쪽","web-design-guidelines는 UI 코드의 접근성(WCAG)·포커스·폼 규칙 위반을 파일:줄 단위로 찾고, vercel-react-best-practices는 React·Next.js 성능 규칙을 적용. 디자인 스킬과 역할이 겹치지 않음",["web-design-guidelines","vercel-react-best-practices",{code:"npx skills add https://github.com/vercel-labs/agent-skills --skill web-design-guidelines\nnpx skills add https://github.com/vercel-labs/agent-skills --skill vercel-react-best-practices"}],"free","설치 명령 확인 (skills CLI 기준)","web-design-guidelines는 실행할 때 Vercel이 공개한 최신 규칙을 웹에서 받아 옴"],
+   ["Figma MCP (디자인 ↔ 구현 비교)","Figma 공식","디자인 화면 캡처와 실제 구현 화면을 나란히 놓고 어긋난 곳 찾기",["get_screenshot"],"mix"],
+   ["review-animations · break-ui","Emil Kowalski","어색한 움직임 지적 / 긴 이름·빈 데이터 같은 최악 입력으로 깨뜨려 보기",["review-animations","break-ui"],"free"]
+  ]}},
+ {n:5, t:"확장", opt:true, sum:["경험 축적·팀 맞춤","홍보 영상"],
+  intro:"필요할 때만 붙이는 단계입니다.",
+  code:{h:"다음 작업을 위한 축적", io:[["결과물","다음 작업이 더 빨라지는 기록"]], tools:[
+   ["Compound Engineering","EveryInc","개발 경험을 다음 작업에 축적",[]],
+   ["직무 플러그인 아이디어","anthropics/knowledge-work-plugins","용어 메모를 매번 먼저 읽기(productivity), 출처를 단 검색(enterprise-search), 결과 내기 전 자체 검증(data). 셋 다 AGENTS.md 규칙으로 옮겨 쓰면 됨",[]]
+  ]},
+  ui:{h:"소개 영상·발표 자료", io:[["입력","DESIGN.md + 장면 설명 또는 outline.md"],["결과물","MP4 영상, 발표 덱"]], tools:[
+   {grp:"소개 영상"},
+   ["Remotion","React","템플릿 한 번 → 숫자·문구만 바꿔 반복. 매주 같은 포맷에 강함",[],"mix","기업 사용은 라이선스 확인"],
+   ["HyperFrames","heygen · HTML/CSS","설명하면 MP4. Remotion에서 옮기는 스킬도 있음",[{code:"claude plugin marketplace add heygen-com/hyperframes\nclaude plugin install hyperframes@hyperframes"}],"free","README 확인"],
+   {grp:"발표 자료 (발표 자료 트랙에 상세)"},
+   ["pptx","Anthropic 공식","편집 가능한 .pptx, 회사 템플릿 채우기, 렌더 QA 내장",["pptx"],"free"],
+   ["frontend-slides","zarazhangrui","웹(HTML) 덱, 스타일 미리보기 3개, PDF·URL 배포",["/frontend-slides"],"free"]
+  ]}}
+];
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const COST = {free:["free","무료"],paid:["paid","유료"],mix:["mix","일부 유료"]};
+
+/* ---------- 메인 스윔레인 ---------- */
+// c: 코드 따로, g: 같이, u: UI 따로 / d: 할 일, k: 스킬, f: 파일
+const FLOW = [
+ {n:0,t:"뼈대 고르기",mode:"같이",gate:"한 세션에 켜진 스킬이 4~5개 이하이고, AGENTS.md에 실행·테스트 명령이 있다",
+  c:{d:["절차형 묶음 하나만 설치 (위에서 고르면 그 묶음 명령만 남음)"],k:["Superpowers","gstack","pstack","Feature Dev","Spec Kit"],f:[".claude/settings.json"]},
+  g:{d:["공통 규칙 작성: 실행·테스트 명령, 폴더 규칙, 금지사항","CLAUDE.md는 AGENTS.md를 불러오는 한 줄로"],k:["/speckit.constitution"],f:["AGENTS.md","CLAUDE.md","constitution.md"]},
+  u:{d:["디자인 방향 스킬 하나만 설치","컴포넌트 라이브러리 하나 고르기 (shadcn / Ant Design / Tremor)","디자인 원본이 Figma에 있으면 Figma MCP 연결"],k:["Impeccable","frontend-design","Ant Design","Tremor","Figma MCP"],f:[]}},
+ {n:1,t:"스펙·리서치",mode:"같이 중심",gate:"spec.md에 '확인 필요'로 남은 항목이 없고, 예외 규칙과 수용 기준이 적혀 있다",
+  c:{d:["기존 코드 구조와 동작 파악"],k:["/feature-dev"],f:["research.md"]},
+  g:{d:["질문으로 빠진 조건 채우기 (담당자가 없으면? 여러 명이면?)","만들 가치부터 따지기","용어 맞추기","성능 목표를 숫자로 (데이터 양, 응답 시간)"],k:["grill-me","brainstorming","/speckit.specify","/speckit.clarify","/office-hours"],f:["spec.md","glossary.md"]},
+  u:{d:["내용에 맞는 실제 서비스 화면 10~20장 모으기","분위기는 영감 갤러리에서 따로","공통 패턴과 서비스마다 다른 점 메모"],k:["Nicelydone","SaaSFrame","Mobbin","Dribbble"],f:["references.md"]}},
+ {n:2,t:"설계",mode:"같이 만들고 따로 저장",gate:"contracts/와 tests/spec.md가 있다. 이 둘이 있어야 구현 단계를 나눠서 시작할 수 있다",
+  c:{d:["모듈 구조·인터페이스 설계","데이터 양에 맞는 자료구조·알고리즘 고르기, 예상 병목 적기","중요한 결정은 이유와 함께 기록"],k:["architect","arena","writing-plans"],f:["docs/decisions/"]},
+  g:{d:["데이터 계약 확정: 데이터 모양 + 빈 화면·로딩·오류 상태","작업을 [CODE]/[UI]로 나눠 목록화","수용 기준을 테스트 시나리오로","계획 검토"],k:["/speckit.plan","/speckit.tasks","/plan-eng-review","/plan-design-review"],f:["plan.md","data-model.md","contracts/","tasks.md","tests/spec.md","tests/fixtures/"]},
+  u:{d:["화면 스펙: 화면 목록, 구성, 컴포넌트, 상태별 모습","색·폰트·간격을 토큰으로"],k:["/impeccable shape","/impeccable document","Stitch","Figma MCP"],f:["screens.md","DESIGN.md"]}},
+ {n:3,t:"구현·조합",mode:"따로",gate:"코드는 단위 테스트 통과, UI는 예시 데이터(fixtures)로 모든 상태가 화면에 나온다",
+  c:{d:["tasks.md의 [CODE] 작업만","테스트 먼저 → 구현 → 통과"],k:["tdd","subagent-driven-development","/speckit.implement"],f:["src/lib/","src/api/","tests/unit/"]},
+  g:{d:["같이 할 일 없음. 대신 규칙 하나: 계약(contracts/)을 혼자 바꾸지 않기","바꿔야 하면 설계 단계 파일부터 고치고 양쪽에 알리기"],k:[],f:["tasks.md 체크"]},
+  u:{d:["tasks.md의 [UI] 작업만","실제 API 없이 fixtures로 화면 먼저 완성","블록 조합 → 필요하면 움직임"],k:["shadcn MCP","Figma MCP","React Bits","animate"],f:["src/components/","src/app/","components.json"]}},
+ {n:4,t:"검증·다듬기",mode:"각자 검사 → 합쳐서 확인",gate:"spec.md의 모든 수용 기준(AC)이 e2e 테스트로 통과하고, 명세 대조에서 빠진 요구사항이 없다 (Spec Kit이면 /speckit.converge, 아니면 spec.md와 직접 대조)",
+  c:{d:["① 코드 리뷰, 보안 점검","① 성능 측정: 목표 숫자와 비교해 병목만 고치기"],k:["/review","interrogate","/feature-dev","verification-before-completion","performance-optimization","/simplify"],f:["reports/review.md","reports/perf.md"]},
+  g:{d:["② 실제 API를 연결해 앱을 띄우고 확인","② 명세와 대조, 빠진 요구사항은 tasks.md에 다시 추가"],k:["/qa","/speckit.converge","e2e 테스트"],f:["tests/e2e/","reports/qa.md"]},
+  u:{d:["① 디자인 감사, 접근성, 최악의 데이터 입력"],k:["/impeccable audit","Vercel Skills","break-ui"],f:["reports/audit.md"]}},
+ {n:5,t:"확장",mode:"선택",opt:true,gate:"이번에 배운 점이 다음 작업에서 읽히는 파일에 들어갔다",
+  c:{d:["배포와 릴리스 노트"],k:["/ship","/document-release"],f:["CHANGELOG.md"]},
+  g:{d:["이번 작업에서 배운 점을 정리하고, 반복되는 것은 AGENTS.md 규칙으로 올리기"],k:["Compound Engineering"],f:["docs/learnings.md","AGENTS.md 수정"]},
+  u:{d:["소개 영상 만들기","발표 자료 만들기 (발표 자료 트랙)"],k:["HyperFrames","Remotion","pptx","frontend-slides"],f:["media/","decks/"]}}
+];
+const LAB = {c:"코드 · 따로",g:"같이",u:"UI · 따로",p:"발표"};
+function cell(k,d){
+  if(!d || (!d.d.length && !d.k.length)) return `<div class="cell ${k==="g"?"t":k} empty">없음</div>`;
+  const cls = k==="g"?"t":k;
+  return `<div class="cell ${cls}"><span class="cl">${LAB[k]}</span><ul>${d.d.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`+
+    (d.ch?`<div class="choices">${d.ch.map(([w,f,sk])=>`<span class="cw">${esc(w)}</span><span class="cf">${esc(f)}</span><button type="button" class="cmd chip ${k}" data-skill="${esc(sk)}">${esc(sk)}</button>`).join("")}</div>`:"")+
+    (d.k.length?`<div class="chips">${d.k.map(x=>{ const pk = packOf(x); return `<button type="button" class="cmd chip ${k==="g"?"":k}" data-skill="${esc(x)}"${pk?` data-pack="${esc(pk)}"`:""}>${esc(x)}${pk&&pk!==x?`<small class="pktag">${esc(pk)}</small>`:""}</button>`; }).join("")}</div>`:"")+
+    (d.f.length?`<div class="files">${d.f.map(x=>`<span class="file">${esc(x)}</span>`).join("")}</div>`:"")+`</div>`;
+}
+
+/* ---------- 파일 트리 ---------- */
+// [깊이, 이름, 생기는 단계, 누가(g/c/u), 설명, 만드는 스킬, 고치는 단계들, 제안 파일?, 폴더?]
+const TREE = [
+ [0,"meeting-notes-app/",0,"g","프로젝트 루트","",[],false,true],
+ [1,"AGENTS.md",0,"g","모든 에이전트가 먼저 읽는 공통 규칙. 실행·테스트 명령, 폴더 규칙, 금지사항","직접 작성",[5]],
+ [1,"CLAUDE.md",0,"g","Claude Code는 이 파일을 읽음. 내용은 @AGENTS.md 한 줄로 두어 규칙을 한 곳에서 관리","직접 작성",[]],
+ [1,".claude/",0,"g","Claude Code 프로젝트 설정","",[],false,true],
+ [2,"settings.json",0,"g","켤 플러그인, 권한(deny), 훅. 매번 반드시 지킬 규칙은 여기서 강제 (Law 참고)","/plugin · 직접 작성",[]],
+ [2,"agents/",0,"g","구현 단계를 나눠 돌릴 서브에이전트 정의 (웹앱일 때)","",[],true,true],
+ [3,"code-builder.md",0,"c","역할: tasks.md의 [CODE]만, 코드 스킬만 사용","직접 작성",[],true],
+ [3,"ui-builder.md",0,"u","역할: tasks.md의 [UI]만, DESIGN.md 준수","직접 작성",[],true],
+ [1,".specify/memory/constitution.md",0,"g","Spec Kit의 프로젝트 원칙 (예: 테스트 없는 코드 금지). Spec Kit을 쓸 때만","/speckit.constitution",[]],
+ [1,"docs/",1,"g","오래 남길 문서","",[],false,true],
+ [2,"glossary.md",1,"g","프로젝트 용어집. 같은 말을 같은 뜻으로 쓰게","grill-with-docs",[]],
+ [2,"research/",1,"u","UI 레퍼런스","",[],true,true],
+ [3,"references.md",1,"u","참고 서비스 목록, 화면 캡처 링크, 공통 패턴 표","Nicelydone, SaaSFrame, Mobbin, Dribbble",[],true],
+ [3,"screens/",1,"u","캡처 이미지","",[],true,true],
+ [2,"decisions/",2,"c","설계 결정 기록(ADR): 무엇을 정했고, 왜, 버린 대안은","architect, documentation-and-adrs",[],false,true],
+ [2,"handoff.md",3,"g","세션을 넘길 때 진행 상황 요약 (끝난 것·다음 할 일·읽을 파일)","/handoff, /context-save",[4,5],true],
+ [2,"learnings.md",5,"g","다음 작업에 넘길 교훈","Compound Engineering",[],true],
+ [1,"specs/001-meeting-summary/",1,"g","기능 하나당 폴더 하나 (Spec Kit 규칙)","",[],false,true],
+ [2,"spec.md",1,"g","무엇을, 왜: 사용자 시나리오, 요구사항, 예외 규칙, 수용 기준(AC)","/speckit.specify, /speckit.clarify",[]],
+ [2,"research.md",1,"c","기존 코드 조사, 기술 조사 결과","/feature-dev, /speckit.plan",[]],
+ [2,"plan.md",2,"g","어떻게: 기술 구조, 라이브러리, 모듈 경계","/speckit.plan",[]],
+ [2,"data-model.md",2,"g","데이터 구조 (회의록, 할 일, 담당자)","/speckit.plan",[]],
+ [2,"contracts/",2,"g","코드와 UI를 잇는 계약. 혼자 수정 금지","/speckit.plan",[],false,true],
+ [3,"api.md",2,"g","요청·응답 모양, 오류 코드","",[]],
+ [3,"ui-states.md",2,"g","화면별 상태: 빈 화면·로딩·오류·미배정","",[],true],
+ [2,"screens.md",2,"u","화면 스펙: 화면 목록, 구성, 쓰는 컴포넌트, 상태별 모습","/impeccable shape, Stitch",[],true],
+ [2,"tasks.md",2,"g","작업 목록. [CODE]/[UI] 갈래 + [P] 병렬 + [US1] 시나리오 연결","/speckit.tasks",[3,4]],
+ [2,"checklists/",2,"g","요구사항이 빠짐없고 모호하지 않은지 점검표","/speckit.checklist",[],false,true],
+ [1,"DESIGN.md",2,"u","색·폰트·간격 토큰과 디자인 금지 규칙. UI 세션이 항상 먼저 읽음","/impeccable document, Stitch",[]],
+ [1,"components.json",3,"u","shadcn 설정. 있어야 shadcn 스킬·MCP가 제대로 동작","npx shadcn init",[]],
+ [1,"src/",3,"g","실제 코드","",[],false,true],
+ [2,"lib/",3,"c","비즈니스 로직: 요약, 할 일 추출, 담당자 배정","tdd",[],false,true],
+ [2,"api/",3,"c","서버 API (contracts/api.md 그대로)","",[],false,true],
+ [2,"components/CLAUDE.md",2,"u","UI 폴더 규칙(DESIGN.md 먼저, 토큰만). 화면 파일을 다룰 때만 불러옴 · Law 참고","직접 작성",[],true],
+ [2,"components/ui/",3,"u","shadcn 블록과 화면 부품","shadcn MCP",[],false,true],
+ [3,"button.figma.tsx",3,"u","Code Connect 연결 파일: Figma 컴포넌트 ↔ 코드 컴포넌트 (Figma를 쓸 때만)","Figma Code Connect",[]],
+ [2,"app/",3,"u","페이지·라우트. 구현 단계는 fixtures로, 검증 단계에서 실제 API 연결","",[4],false,true],
+ [1,"tests/",2,"g","테스트","",[],false,true],
+ [2,"spec.md",2,"g","테스트 시나리오: 수용 기준을 '상황 → 행동 → 기대 결과'로 바꾼 것","/speckit.tasks 결과를 정리",[],true],
+ [2,"fixtures/",2,"g","계약 모양의 예시 데이터. UI는 이걸로 먼저 개발, 코드는 테스트에 사용","",[],false,true],
+ [2,"unit/",3,"c","TDD 단위 테스트","tdd, test-driven-development",[],false,true],
+ [2,"bench/",4,"c","성능 측정 스크립트 (같은 조건으로 반복 실행)","performance-optimization",[],true,true],
+ [2,"e2e/",4,"g","합친 앱을 실제 브라우저로 돌리는 시나리오 테스트","/qa, Playwright",[],false,true],
+ [1,"reports/",4,"g","검사 결과 기록","",[],true,true],
+ [2,"review.md",4,"c","코드 리뷰 지적과 수정 내역","/review, interrogate",[],true],
+ [2,"perf.md",4,"c","성능 측정 결과: 목표 숫자, 측정값, 병목, 고친 내용","performance-optimization, benchmark-checklist",[],true],
+ [2,"audit.md",4,"u","디자인 감사 결과","/impeccable audit, /hallmark audit",[],true],
+ [2,"qa.md",4,"g","실제 실행 확인 기록: 재현 → 수정 → 재확인","/qa",[],true],
+ [1,"CHANGELOG.md",5,"c","릴리스 노트","/document-release",[]],
+ [1,"media/",5,"u","소개 영상","HyperFrames, Remotion",[],false,true],
+ [1,"decks/",5,"p","발표 자료. 발표 하나당 폴더 하나","",[],true,true],
+ [2,"2026-launch/",5,"p","예: 제품 출시 발표","",[],true,true],
+ [3,"outline.md",5,"p","청중, 핵심 메시지, 슬라이드별 제목과 말할 내용","grill-me, 직접 작성",[],true],
+ [3,"deck.pptx 또는 index.html",5,"p","덱 본체 (고른 스킬에 따라 하나)","pptx, frontend-slides, Slidev",[]],
+ [3,"deck.pdf",5,"p","배포용 PDF. 받는 PC에서 글꼴이 바뀌는 문제 예방","export-pdf.sh, LibreOffice",[]],
+ [3,"assets/",5,"p","차트, 스크린샷, 이미지","",[],false,true],
+ [3,"qa/",5,"p","슬라이드를 렌더한 이미지와 검사 메모","thumbnail.py",[],true,true]
+];
+const SN = {0:"뼈대",1:"스펙",2:"설계",3:"구현",4:"검증",5:"확장"};
+const LN = {g:["t","같이"],c:["c","코드"],u:["u","UI"],p:["p","발표"]};
+let TV = "all";
+function renderTree(){
+  document.querySelectorAll("#tf button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.t===TV?"true":"false"));
+  const cur = TV==="all" ? 99 : +TV;
+  let made=0, edited=0;
+  document.getElementById("tree").innerHTML = TREE.map(([d,nm,st,ln,ds,by,mods,prop,dir])=>{
+    const isNew = cur===st, isMod = (mods||[]).includes(cur);
+    if(isNew && !dir) made++; if(isMod) edited++;
+    const cls = ["node", dir?"dir":"", st>cur?"future":"", (isNew||isMod)?"now":""].join(" ");
+    return `<li class="${cls}" style="--d:${d}"><span class="fn">${esc(nm)}</span><span class="bd"><span class="sb">${SN[st]}</span><span class="lt ${LN[ln][0]}">${LN[ln][1]}</span>${prop?'<span class="prop">제안</span>':""}${isNew?'<span class="new">NEW</span>':""}${isMod?'<span class="mod">수정</span>':""}</span><span class="dsc">${esc(ds)}${by?` · <i>${esc(by)}</i>`:""}</span></li>`;
+  }).join("");
+  document.getElementById("tcount").textContent = TV==="all"
+    ? `완성본: 파일·폴더 ${TREE.length}개`
+    : `${SN[TV]} 단계: 새 파일 ${made}개${edited?`, 고치는 파일 ${edited}개`:""} (흐린 항목은 아직 없음)`;
+}
+document.querySelectorAll("#tf button").forEach(b=>b.addEventListener("click",()=>{TV=b.dataset.t;renderTree();}));
+renderTree();
+
+function toolRow(t){
+  if(t.grp) return `<div class="grp">${esc(t.grp)}</div>`;
+  const [nm,from,ds,cmds,cost,vf,flag] = t;
+  const parts = [];
+  if(nm) parts.push(`<div class="top"><span class="nm">${esc(nm)}</span><span class="from">${esc(from)}</span>${cost&&COST[cost]?`<span class="cost ${COST[cost][0]}">${COST[cost][1]}</span>`:""}</div>`);
+  if(ds) parts.push(`<span class="ds">${esc(ds)}</span>`);
+  if(flag) parts.push(`<span class="flag">${esc(flag)}</span>`);
+  const inl = (cmds||[]).filter(c=>typeof c==="string");
+  if(inl.length) parts.push(`<span>${inl.map(c=>`<span class="cmd">${esc(c)}</span>`).join("")}</span>`);
+  (cmds||[]).filter(c=>typeof c==="object").forEach(c=>parts.push(`<span class="code"><code>${esc(c.code)}</code><button type="button">복사</button></span>`));
+  if(vf) parts.push(`<span class="vf">${esc(vf)}</span>`);
+  return `<div class="trow">${parts.join("")}</div>`;
+}
+function lane(kind,l){
+  return `<div class="lane lane-${kind}"><div class="lane-head"><h3>${kind==="code"?"코드":"UI"} · ${esc(l.h)}</h3>${l.io.map(([k,v])=>`<span class="io"><b>${esc(k)}</b>${esc(v)}</span>`).join("")}</div>${l.tools.map(toolRow).join("")}</div>`;
+}
+/* openStep: 탭 전환 코드(스크립트 끝)에서 처리 */
+const DECK = [
+ {h:"A · 편집 가능한 .pptx", tools:[
+  ["pptx","Anthropic 공식 · document-skills","새 덱은 pptxgenjs 스크립트로, 회사 템플릿은 파일 안의 XML을 직접 고쳐 채움. 텍스트 추출 → 파일 검사(validate.py) → 이미지로 렌더해 넘침·겹침 확인까지 QA가 들어 있음",[{code:"/plugin marketplace add anthropics/skills\n/plugin install document-skills@anthropic-agent-skills"}],"free","README 확인 · 라이선스: Anthropic 소스 공개(재배포 제한)"],
+  ["ppt-master","hugohe3 · MIT","문서를 도형·애니메이션이 살아 있는 편집 가능한 PPTX로. 스킬이라기보다 에이전트 워크플로",[{code:"git clone https://github.com/hugohe3/ppt-master.git\npip install -r requirements.txt"}],"free","README 확인"],
+ ]},
+ {h:"B · 웹(HTML) 덱", tools:[
+  ["frontend-slides","zarazhangrui · MIT","단일 HTML 덱. 스타일 미리보기 3개 중 고르기, 테마 12개, 기존 PPT를 HTML로 변환, PDF 내보내기·URL 배포 스크립트",[{code:"/plugin marketplace add https://github.com/zarazhangrui/frontend-slides\n/plugin install frontend-slides@frontend-slides"}],"free","README 확인"],
+ ]},
+ {h:"C · 코드로 쓰는 슬라이드", tools:[
+  ["Slidev 공식 스킬","slidevjs · MIT","Markdown + Vue 슬라이드. 코드 하이라이트, Mermaid 다이어그램, 수식. MCP로 에이전트가 슬라이드를 조회·수정할 수도 있음",[{code:"npx skills add slidevjs/slidev"},"slidev mcp slides.md"],"free","공식 문서 확인"],
+ ]},
+ {h:"D · 설치 없이 / 이미 쓰는 도구로", tools:[
+  ["Claude Slides","claude.ai 아티팩트","Claude 대화로 16:9 덱을 만들고 .pptx·PDF로 다운로드. 설치 없음",[],"","이 세션의 아티팩트 종류에서 확인"],
+  ["Open Design","nexu-io","html-ppt 템플릿(피치덱, 주간 보고, 제품 출시 등)을 같은 브랜드 규칙으로",[],"free","저장소 폴더 확인"],
+ ]}
+];
+/* ---------- 발표 자료 트랙 ---------- */
+const DECK_FLOW = [
+ {n:0,t:"뼈대 고르기",mode:"출력 형식 하나",gate:"받는 사람이 열 형식과 쓸 스킬 하나가 정해졌다",
+  p:{d:["받는 사람에 맞춰 형식 하나 고르고, 그 스킬 하나만 설치"],k:[],f:[],ch:[["PowerPoint로 받아서 고친다",".pptx","pptx"],["링크·화면 공유로 발표한다","웹(HTML)","frontend-slides"],["코드·다이어그램이 많다","Markdown","Slidev"],["지금 바로 한 번 만든다","설치 없음","Claude Slides"]]}, grid:true},
+ {n:1,t:"내용",mode:"한 세션",gate:"슬라이드마다 제목 한 줄과 말할 내용이 있다",
+  p:{d:["청중, 핵심 메시지 한 줄, 발표 시간, 슬라이드 수 정하기","앱 프로젝트면 spec.md와 learnings.md에서 가져오기"],k:["grill-me"],f:["outline.md"]},
+  tools:[["grill-me","Matt Pocock","질문으로 청중·메시지·분량을 확정",["grill-me"],"free"],["Claude 대화","설치 없음","같은 질문을 대화로 진행해 outline.md로 정리",[],"free"]]},
+ {n:2,t:"설계",mode:"한 세션",gate:"스토리라인과 테마 하나가 확정됐다",
+  p:{d:["스토리라인 짜기 (문제 → 해결 → 증거 → 요청)","디자인: 앱의 DESIGN.md 재사용 또는 테마 미리보기 3개 중 선택"],k:["/frontend-slides","/impeccable shape"],f:["outline.md 수정","DESIGN.md"]},
+  tools:[["frontend-slides 미리보기","B 형식","스타일 미리보기 3개를 보여 주고 고르게 함",["/frontend-slides"],"free"],["Impeccable","앱 DESIGN.md 재사용","앱과 같은 브랜드 규칙으로",["/impeccable shape"],"free"],["Open Design","html-ppt 템플릿","피치덱·주간 보고·제품 출시 템플릿에서 시작",[],"free"]]},
+ {n:3,t:"제작",mode:"한 세션",gate:"모든 슬라이드가 만들어졌다",
+  p:{d:["뼈대 단계에서 고른 스킬 하나로 덱 만들기","차트·스크린샷은 assets/에 모으기"],k:["pptx","frontend-slides","Slidev"],f:["deck.pptx 또는 index.html","assets/"]},
+  tools:[["pptx","A","새 덱은 pptxgenjs, 회사 템플릿은 파일 안의 XML을 직접 채움",["pptx"],"free"],["ppt-master","A","긴 문서 → 편집 가능한 PPTX",["ppt-master"],"free"],["frontend-slides","B","단일 HTML 덱. 기존 PPT를 HTML로 변환도 가능",["/frontend-slides"],"free"],["Slidev","C","slides.md 작성, MCP로 에이전트가 슬라이드 수정",["slidev mcp slides.md"],"free"]]},
+ {n:4,t:"검증",mode:"한 세션",gate:"넘침·겹침 0, 리허설이 발표 시간 안",
+  p:{d:["텍스트 추출로 오타·순서 확인","파일 검사","슬라이드를 이미지로 렌더해 넘침·겹침·대비 확인","소리 내어 리허설"],k:["markitdown","validate.py","thumbnail.py"],f:["qa/"]},
+  tools:[["pptx QA 스크립트","pptx 스킬에 포함","markitdown(텍스트) → validate.py(파일 구조) → thumbnail.py·LibreOffice(이미지 렌더)",["markitdown","validate.py","thumbnail.py"],"free"]]},
+ {n:5,t:"배포",mode:"한 세션",gate:"받는 쪽에서 열어 보고 깨짐이 없다",
+  p:{d:["원본과 PDF를 함께 전달 (글꼴 바뀜 예방)","웹 덱은 URL로","반복되는 교훈은 AGENTS.md에"],k:["export-pdf.sh","deploy.sh"],f:["deck.pdf"]},
+  tools:[["export-pdf.sh · deploy.sh","frontend-slides","PDF 내보내기, URL 배포",["export-pdf.sh","deploy.sh"],"free"],["LibreOffice","pptx","PPTX → PDF 변환",["soffice --headless --convert-to pdf deck.pptx"],"free"]]}
+];
+const STEP_BY_N = Object.fromEntries(STEPS.map(s=>[s.n,s]));
+const TRACK_TEXT = {
+ app:{t:"단계별로 같이 할 것, 따로 할 것", l:'가운데 <span class="lt t">같이</span> 칸은 코드와 UI가 함께 정하는 일이고, 양옆은 각자 따로 하는 일입니다. <b>스펙·설계는 같이 정하고, 구현은 완전히 따로, 검증은 각자 검사한 뒤 합쳐서 확인</b>합니다. 단계마다 <b>스킬 상세 · 설치</b>를 펼치면 명령과 설치법이 나옵니다. 화면이 없는 프로그램이면 UI 칸은 건너뜁니다.',
+   lg:'<span class="lt c">코드</span><span>로직·API·테스트</span><span class="lt t">같이</span><span>둘이 함께 정하는 것</span><span class="lt u">UI</span><span>화면·디자인</span><span><span class="file">파일</span> 이 단계에서 생기는 파일</span><span>점선: 선택 단계</span>'},
+ deck:{t:"발표 자료도 같은 단계로: 뼈대 → 내용 → 설계 → 제작 → 검증 → 배포", l:'앱과 같은 단계 뼈대를 씁니다. 발표는 한 세션으로 만들기 때문에 같이/따로 구분 없이 한 칸입니다. 핵심은 <b>뼈대 단계에서 받는 쪽 형식(A~D)으로 스킬 하나를 고르는 것</b>입니다. 앱 프로젝트의 발표라면 spec.md와 DESIGN.md를 그대로 가져옵니다.',
+   lg:'<span class="lt p">발표</span><span>한 세션으로 진행</span><span><span class="file">파일</span> decks/&lt;발표명&gt;/ 아래에 생기는 파일</span>'}
+};
+let TRACK = "app";
+function swLab(s){ return `<div class="sw-lab"><b>${s.t}</b><span class="mode">${s.mode}</span></div>`; }
+function swMore(id,cnt,inner){ return `<details class="sw-more" id="${id}"><summary>스킬 상세 · 설치 <span class="cnt">${cnt}개</span></summary>${inner}</details>`; }
+const countTools = arr => arr.filter(t=>!t.grp).length;
+/* ---------- 절차형 묶음: 칩마다 소속 표시, 하나를 고르면 다른 묶음 명령은 숨김 ---------- */
+const PACK = {
+ "Superpowers":["Superpowers","writing-plans","test-driven-development","subagent-driven-development","verification-before-completion","requesting-code-review","brainstorming"],
+ "gstack":["gstack","/office-hours","/plan-ceo-review","/plan-eng-review","/plan-design-review","/review","/qa","/ship","/document-release","/context-save","/context-restore","/learn"],
+ "pstack":["pstack","architect","arena","interrogate","benchmark-checklist","poteto-mode"],
+ "Spec Kit":["Spec Kit"],
+ "Feature Dev":["Feature Dev","/feature-dev"]
+};
+function packOf(x){ x = String(x).trim(); if(/^\/speckit\./.test(x)) return "Spec Kit"; for(const [p,l] of Object.entries(PACK)) if(l.includes(x)) return p; return null; }
+var PACKSEL = "all";
+const PACK_CLASH = {"Superpowers":["grill-me"]}; // 같이 쓰면 같은 질문을 두 번 받음
+const PACK_NOTE = {
+ all:'칩 옆 작은 글씨는 그 명령이 속한 <b>절차형 묶음</b>입니다. 묶음은 하나만 설치하므로, 위에서 하나를 고르면 그 묶음 명령만 남습니다. 표시가 없는 칩(grill-me, tdd, Impeccable 등)은 어떤 묶음과도 같이 씁니다.',
+ pick:'다른 절차형 묶음의 명령은 숨겼습니다. 칸에 남은 명령이 없으면 표시 없는 골라쓰기형(Matt Pocock·Addy Osmani)이나 직접 지시로 채우세요.'
+};
+function applyPack(){
+  const box = document.getElementById("packsel"); if(!box) return;
+  box.hidden = TRACK==="deck"; document.getElementById("psnote").hidden = TRACK==="deck";
+  box.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.pack===PACKSEL?"true":"false"));
+  document.querySelectorAll("#swim button.chip[data-pack]").forEach(b=>{ b.hidden = PACKSEL!=="all" && b.dataset.pack!==PACKSEL; });
+  document.querySelectorAll("#swim button.chip:not([data-pack])").forEach(b=>{ b.hidden = (PACK_CLASH[PACKSEL]||[]).includes(b.dataset.skill); });
+  document.getElementById("psnote").innerHTML = PACKSEL==="all" ? PACK_NOTE.all : `<b>${esc(PACKSEL)}</b> 기준으로 보는 중. `+PACK_NOTE.pick;
+  try{ localStorage.setItem("skillBoardPack", PACKSEL); }catch(e){}
+}
+function renderSwim(){
+  const sw = document.getElementById("swim");
+  if(TRACK==="app"){
+    sw.innerHTML = `<div class="sw-head" aria-hidden="true"><span></span><span class="c">코드 · 따로</span><span class="t">같이</span><span class="u">UI · 따로</span></div>` +
+      FLOW.map(s=>{ const d = STEP_BY_N[s.n];
+        return `<div class="sw-row${s.opt?" opt":""}" id="flow${s.n}">${swLab(s)}${cell("c",s.c)}${cell("g",s.g)}${cell("u",s.u)}<div class="gate"><b>다음으로 넘어가는 조건</b>${esc(s.gate)}</div>${swMore("step"+s.n, countTools([...d.code.tools,...d.ui.tools]), `<p class="note">${d.intro}</p><div class="lanes">${lane("code",d.code)}${lane("ui",d.ui)}</div>`)}</div>`; }).join("");
+  } else {
+    sw.innerHTML = `<div class="sw-head deck" aria-hidden="true"><span></span><span class="p">발표 · 한 세션</span></div>` +
+      DECK_FLOW.map(s=>{
+        const inner = s.grid
+          ? `<div class="decktools">${DECK.map(g=>`<div class="lane lane-p"><div class="lane-head"><h3>${esc(g.h)}</h3></div>${g.tools.map(toolRow).join("")}</div>`).join("")}</div>`
+          : `<div class="lane lane-p">${s.tools.map(toolRow).join("")}</div>`;
+        const cnt = s.grid ? DECK.reduce((a,g)=>a+countTools(g.tools),0) : countTools(s.tools);
+        return `<div class="sw-row deck" id="dflow${s.n}">${swLab(s)}${cell("p",s.p)}<div class="gate"><b>다음으로 넘어가는 조건</b>${esc(s.gate)}</div>${swMore("dstep"+s.n, cnt, inner)}</div>`; }).join("");
+  }
+  const tx = TRACK_TEXT[TRACK];
+  document.getElementById("wfTitle").textContent = tx.t;
+  document.getElementById("wfLead").innerHTML = tx.l;
+  document.getElementById("legend").innerHTML = tx.lg;
+  document.getElementById("deckOutro").hidden = TRACK!=="deck";
+  document.querySelectorAll(".track button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.track===TRACK?"true":"false"));
+  applyPack();
+}
+function setTrack(t){ t = t==="deck"?"deck":"app"; if(t!==TRACK || !document.getElementById("swim").children.length){ TRACK=t; renderSwim(); } }
+try{ const v = localStorage.getItem("skillBoardPack"); if(v && (v==="all" || PACK[v])) PACKSEL = v; }catch(e){}
+document.querySelectorAll("#packsel button").forEach(b=>b.addEventListener("click",()=>{ PACKSEL = b.dataset.pack; applyPack(); }));
+renderSwim();
+
+/* ---------- 빠른 찾기 ---------- */
+// [단계, 갈래 c/u, 상황, 도구, 명령(" · " 구분), 설명]
+const rows = [
+ [1,"c","놓치기 쉬운 예외 조건을 다 찾고 싶다","Matt Pocock","grill-me","안 정한 부분을 집요하게 파고듦"],
+ [1,"c","팀 용어를 맞추고 결정을 문서로 남기고 싶다","Matt Pocock","grill-with-docs","용어 정리 + 설계 결정 기록"],
+ [1,"c","이걸 정말 만들어야 하는지 의심된다","gstack","/office-hours","제품 가치와 진짜 문제부터 검토"],
+ [1,"c","요구사항을 명세로 확정하고 싶다","Spec Kit","/speckit.specify · /speckit.clarify","문서화 + 빠진 규칙 보완"],
+ [1,"c","기존 프로젝트에 기능을 추가해야 한다","Feature Dev","/feature-dev","기존 코드 탐색 후 연결 지점 구체화"],
+ [0,"u","표·폼이 많은 관리자 화면을 만든다","Ant Design (+ Pro)","Ant Design Pro · npx -y @ant-design/cli mcp","업무 화면 컴포넌트가 무료로 다 있음 + 공식 MCP"],
+ [0,"u","차트 중심 분석 대시보드를 만든다","Tremor","blocks.tremor.so","차트·KPI 블록과 템플릿 무료"],
+ [0,"u","디자인을 자유롭게 고치고 싶다","shadcn/ui","shadcn-admin","코드를 복사해 와서 직접 고치는 방식"],
+ [0,"u","디자이너가 Figma로 작업한다","Figma MCP","figma-remote-mcp","에이전트가 디자인 원본을 직접 읽음"],
+ [2,"u","Figma 디자인 시스템을 DESIGN.md로 옮기고 싶다","Figma MCP","get_variable_defs","Figma 변수·스타일 → 토큰"],
+ [3,"u","Figma 화면을 코드로 옮기고 싶다","Figma MCP","get_design_context · Code Connect","결과를 프로젝트 컴포넌트로 바꿔 쓰기"],
+ [4,"u","디자인과 구현이 같은지 확인하고 싶다","Figma MCP","get_screenshot","디자인 캡처와 구현 화면 비교"],
+ [1,"u","내용에 맞는 웹 대시보드 레퍼런스를 찾고 싶다","Nicelydone · SaaSFrame","nicelydone.club · saasframe.io","실제 SaaS 대시보드 화면을 종류별로"],
+ [1,"u","비슷한 모바일 앱 화면과 흐름을 보고 싶다","Mobbin","mobbin","iOS·Android 흐름이 강점 (유료)"],
+ [1,"u","분위기·콘셉트 아이디어가 필요하다","Dribbble · Awwwards","dribbble.com · awwwards.com","시안 위주라 실제 구현과 다를 수 있음"],
+ [1,"u","랜딩 페이지 레퍼런스가 필요하다","Land-book · Lapa Ninja · Godly","land-book.com · lapa.ninja","랜딩 페이지 모음"],
+ [2,"c","AI가 개발 도중 길을 잃지 않게 하고 싶다","Superpowers","writing-plans","파일·테스트까지 계획서로 고정"],
+ [2,"c","처음 요구한 기능이 빠지지 않게 하고 싶다","Spec Kit","/speckit.plan · /speckit.tasks","명세 → 구조 → 작업 목록 연결"],
+ [2,"c","세운 계획을 검토받고 싶다","gstack","/plan-ceo-review · /plan-eng-review · /plan-design-review","제품·기술·UX 관점 분리 검토"],
+ [2,"c","코드 전에 타입·인터페이스부터","pstack","architect","타입·함수·모듈 구조 먼저"],
+ [2,"c","설계안 하나에 의존하기 불안하다","pstack","arena","여러 에이전트 설계안 절충"],
+ [0,"u","디자인 스킬을 처음 써 본다","frontend-design","frontend-design","콘셉트 먼저, 가장 무난"],
+ [2,"u","업종에 맞는 디자인 규칙이 필요하다","UI/UX Pro Max","ui-ux-pro-max","업종별 색·폰트·차트 → 디자인 시스템"],
+ [2,"u","앱 시안과 클릭 프로토타입이 먼저 필요","Google Stitch","Stitch · DESIGN.md","시안 + 프로토타입 → MCP 전달"],
+ [3,"c","테스트로 동작을 고정하며 짜고 싶다","Superpowers / Matt","test-driven-development · tdd","실패 확인 → 구현 → 통과"],
+ [3,"c","작업을 쪼개 여러 에이전트에 맡기고 싶다","Superpowers","subagent-driven-development","작업마다 새 서브에이전트"],
+ [3,"c","한 기능씩 완성하며 가고 싶다","Addy Osmani","incremental-implementation","끝까지 완성 후 다음"],
+ [3,"u","AI가 shadcn 컴포넌트를 자꾸 잘못 쓴다","shadcn 공식 스킬","npx skills add shadcn/ui","정확한 사용 규칙"],
+ [3,"u","필요한 섹션 블록을 찾아 바로 설치","shadcn MCP","npx shadcn@latest mcp","레지스트리 검색·설치"],
+ [3,"u","랜딩·포트폴리오를 화려하게","React Bits","컴포넌트 선택","효과 215개+"],
+ [3,"u","움직임을 어디에 넣을지 모르겠다","Emil Kowalski","find-animation-opportunities","넣을 곳을 값과 함께 제안"],
+ [3,"u","애니메이션이 너무 많아 산만하다","Emil Kowalski","remove-animations","필요 없는 움직임 제거"],
+ [4,"c","빌드는 되는데 실제로 맞게 도는지 모르겠다","gstack","/qa","앱을 실제로 띄워 확인"],
+ [4,"c","한 모델 리뷰만으로는 불안하다","pstack","interrogate","다른 모델들의 독립 리뷰"],
+ [4,"c","리뷰 관점을 역할별로 나누고 싶다","Feature Dev","/feature-dev","리뷰 에이전트 3개 병렬"],
+ [4,"c","보안을 점검하고 싶다","Addy Osmani","security-and-hardening","입력 검증·인증·비밀값 노출"],
+ [4,"c","처음 약속한 기능이 다 들어갔나","Spec Kit","/speckit.analyze · /speckit.converge","명세 대조, 빠진 것 재작업"],
+ [4,"c","완료 선언 전에 증거를 확인하고 싶다","Superpowers","verification-before-completion","완료 전 검증"],
+ [2,"c","데이터가 많아지면 느려질까 걱정된다","성능 설계 · pstack","arena","데이터 양·병목을 계획에 적고 대안 비교"],
+ [4,"c","느린 곳을 찾아 고치고 싶다","Addy Osmani","performance-optimization","측정 → 병목 → 수정, N+1 쿼리 등"],
+ [4,"c","측정한 숫자를 믿어도 될지 모르겠다","pstack","benchmark-checklist · principle-explain-the-number","반복성과 측정 대상 점검"],
+ [4,"c","바뀐 코드를 더 단순·효율적으로 정리하고 싶다","Claude Code 내장","/simplify","중복·불필요한 계산 정리"],
+ [4,"u","첫 화면만 과감하게, 정보 구간은 차분하게","Impeccable","/impeccable bolder · /impeccable quieter","구간별 정확한 지시"],
+ [4,"u","출시 전 디자인 점검","Impeccable","/impeccable audit · npx impeccable detect","규칙 위반 자동 탐지"],
+ [4,"u","접근성·성능·React 품질 확인","Vercel Agent Skills","web-design-guidelines · vercel-react-best-practices","WCAG·성능·모범 사례"],
+ [4,"u","긴 이름·빈 데이터에서 깨지는지","Emil Kowalski","break-ui","최악 입력으로 깨뜨려 보기"],
+ [0,"c","새 프로젝트에 규칙 파일을 만들고 싶다","Claude Code 내장","/init","CLAUDE.md 초안 → 규칙만 AGENTS.md로"],
+ [2,"c","왜 그렇게 정했는지 기록을 남기고 싶다","Addy Osmani","documentation-and-adrs","docs/decisions/에 결정 기록"],
+ [3,"c","세션을 끊고 나중에 이어서 하고 싶다","Matt Pocock / gstack","/handoff · /context-save","진행 상황 요약 → docs/handoff.md"],
+ [5,"c","개발 경험을 다음 작업에 남기고 싶다","Compound Engineering","compound-engineering","경험 축적"],
+ [5,"u","매주 같은 형식의 통계 영상","Remotion","Remotion","React 템플릿 반복"],
+ [5,"u","10초 제품 소개 영상","HyperFrames","hyperframes","HTML/CSS → MP4"],
+ [1,"p","발표 내용이 정리가 안 됐다","grill-me / Claude 대화","grill-me","질문으로 청중·핵심 메시지·분량을 정해 outline.md로"],
+ [2,"p","발표 디자인을 고르기 어렵다","frontend-slides","/frontend-slides","스타일 미리보기 3개를 보고 고름"],
+ [2,"p","앱과 같은 브랜드로 발표하고 싶다","DESIGN.md 재사용","DESIGN.md · Open Design","앱의 색·폰트 토큰을 덱에 그대로"],
+ [3,"p","받는 사람이 PowerPoint로 고쳐야 한다","pptx (Anthropic 공식)","pptx","편집 가능한 .pptx 생성"],
+ [3,"p","회사 PPT 템플릿에 맞춰야 한다","pptx (Anthropic 공식)","pptx","템플릿을 직접 채우고 안 쓰는 칸은 제거"],
+ [3,"p","긴 문서를 편집 가능한 PPT로 바꾸고 싶다","ppt-master","ppt-master","문서 → 도형·애니메이션이 살아 있는 PPTX"],
+ [3,"p","링크로 공유할 웹 발표가 좋다","frontend-slides","/frontend-slides","단일 HTML 덱 + URL 배포"],
+ [3,"p","개발 발표라 코드·다이어그램이 많다","Slidev","slidevjs/slidev","코드 하이라이트, Mermaid, 수식"],
+ [3,"p","설치 없이 바로 만들고 싶다","Claude Slides","Claude 대화","16:9 덱 → .pptx·PDF 다운로드"],
+ [4,"p","글자가 넘치거나 겹치는지 확인하고 싶다","pptx QA","thumbnail.py · validate.py","슬라이드를 이미지로 렌더해 확인"],
+ [5,"p","받는 PC에서 글꼴이 깨질까 걱정된다","PDF 함께 배포","deck.pdf","PDF는 글꼴이 고정됨"]
+];
+/* ---------- 스킬 사전 (빠른 찾기 행 · 워크플로 칩이 함께 씀) ---------- */
+const norm = x => String(x).toLowerCase().replace(/\s+/g," ").trim();
+const SKILLS = new Map();
+function addKey(k,e){ k = norm(k); if(!k) return; if(!SKILLS.has(k)) SKILLS.set(k,[]); const a = SKILLS.get(k); if(!a.includes(e)) a.push(e); }
+function addEntry(t, step, lane, track){
+  if(!Array.isArray(t) || !t[0]) return;
+  const [nm,from,ds,cmds,cost,vf,flag] = t;
+  const e = {name:nm, from:from||"", desc:ds||"", cmds:(cmds||[]).filter(c=>typeof c==="string"), codes:(cmds||[]).filter(c=>typeof c==="object").map(c=>c.code), cost, vf, flag, step, lane, track};
+  const base = nm.replace(/\s*\(.*?\)\s*/g," ").trim();
+  [nm, base, ...nm.split(/ · | \/ /), ...base.split(/ · | \/ /)].forEach(k=>addKey(k,e));
+  e.cmds.forEach(c=>{ addKey(c,e); addKey(c.replace(/^\//,""),e); });
+}
+STEPS.forEach(st=>{ st.code.tools.forEach(t=>addEntry(t,st.n,"c","app")); st.ui.tools.forEach(t=>addEntry(t,st.n,"u","app")); });
+DECK.forEach(g=>g.tools.forEach(t=>addEntry(t,0,"p","deck")));
+DECK_FLOW.forEach(st=>(st.tools||[]).forEach(t=>addEntry(t,st.n,"p","deck")));
+[ // 단계 표에는 없지만 페이지에서 언급하는 명령
+ [0,"c",["/init","Claude Code 내장","코드를 읽고 CLAUDE.md 초안을 만듦. 규칙만 AGENTS.md로 옮기기",["/init"],"free","이 환경의 내장 스킬 기준"]],
+ [0,"c",["/speckit.constitution","Spec Kit","프로젝트 원칙(constitution.md)을 정함. 예: 테스트 없는 코드 금지",["/speckit.constitution"],"free"]],
+ [0,"c",["context-engineering","Addy Osmani","새 세션을 시작하거나 결과가 나빠질 때 규칙 파일·맥락 구성을 점검",["context-engineering"],"free"]],
+ [2,"c",["documentation-and-adrs","Addy Osmani","왜 그렇게 정했는지를 결정 기록(ADR)으로 남김",["documentation-and-adrs"],"free"]],
+ [3,"c",["/handoff","Matt Pocock","대화를 다음 세션용 문서로 압축. 기본 저장 위치가 임시 폴더라 docs/handoff.md로 옮겨 두기",["/handoff"],"free"]],
+ [3,"c",["/context-save · /context-restore","gstack","작업 맥락을 저장했다가 다음 세션에서 복원",["/context-save","/context-restore"],"free"]],
+ [5,"c",["/ship · /document-release","gstack","배포하고 릴리스 문서를 정리",["/ship","/document-release"],"free"]],
+ [5,"c",["/learn","gstack","프로젝트에서 배운 점을 모아 관리",["/learn"],"free"]],
+ [1,"c",["brainstorming","Superpowers","Superpowers를 설치하면 기능을 만들기 전에 자동으로 실행되는 질문 단계. grill-me와 역할이 같아 둘 중 하나만 씀",["brainstorming"],"free"]],
+ [4,"c",["e2e 테스트","Playwright 등","합친 앱을 실제 브라우저로 띄워 spec.md의 수용 기준(AC)을 시나리오로 확인. 테스트 파일은 tests/e2e/",[{code:"npm init playwright@latest"}],"free"]]
+].forEach(([st,ln,t])=>addEntry(t,st,ln,"app"));
+const ALIAS = {"Spec Kit":"GitHub Spec Kit","Slidev":"Slidev 공식 스킬","slidevjs/slidev":"Slidev 공식 스킬","Stitch":"Google Stitch","Vercel Skills":"Vercel Agent Skills","shadcn/ui":"shadcn/ui (+ shadcn-admin)","Addy Osmani":"Addy Osmani agent-skills","Matt Pocock":"Matt Pocock skills"};
+Object.entries(ALIAS).forEach(([a,target])=>{ const l = SKILLS.get(norm(target)); if(l) l.forEach(e=>addKey(a,e)); });
+const FW = [["Superpowers","Superpowers"],["gstack","gstack"],["pstack","pstack"],["Feature Dev","Feature Dev"],["Spec Kit","GitHub Spec Kit"],["Matt Pocock","Matt Pocock skills"],["Addy Osmani","Addy Osmani agent-skills"],["Figma","Figma MCP"],["Emil","Emil Kowalski skills"],["Impeccable","Impeccable"],["pptx","pptx"],["frontend-slides","frontend-slides"]];
+function findSkill(n){ return SKILLS.get(norm(n)) || SKILLS.get(norm(String(n).replace(/^\//,""))) || SKILLS.get(norm(String(n).replace(/\s*\(.*?\)\s*/g," "))) || null; }
+function installFor(list){
+  const own = list.find(e=>e.codes.length); if(own) return {via:own.name, codes:own.codes, self:true};
+  const e = list[0];
+  for(const k of [e.name, ...e.cmds]){ const l = findSkill(k); const h = l && l.find(x=>x.codes.length); if(h) return {via:h.name, codes:h.codes}; }
+  const src = e.from+" "+e.name;
+  for(const [kw,fw] of FW){ if(src.includes(kw)){ const l = findSkill(fw); const h = l && l.find(x=>x.codes.length); if(h) return {via:h.name, codes:h.codes}; } }
+  return null;
+}
+const DECKN = {0:"뼈대",1:"내용",2:"설계",3:"제작",4:"검증",5:"배포"};
+const LANEN = {c:"코드",u:"UI",p:"발표"};
+const codeBox = c => `<span class="code"><code>${esc(c)}</code><button type="button">복사</button></span>`;
+function pickBest(list, c){
+  c = c || {};
+  const names = new Set((c.names||[]).map(norm));
+  const byName = e => names.size && [e.name, e.name.replace(/\s*\(.*?\)\s*/g," ").trim(), ...e.name.split(/ · | \/ /)].some(n=>names.has(norm(n)));
+  const has = e => e.desc;
+  const tests = [
+    e => has(e) && e.step===c.step && e.lane===c.lane && byName(e),
+    e => has(e) && e.step===c.step && e.lane===c.lane,
+    e => has(e) && c.lane==null && e.step===c.step,
+    e => has(e) && byName(e),
+    e => has(e) && e.lane===c.lane,
+    has
+  ];
+  for(const t of tests){ const f = list.find(t); if(f) return f; }
+  return list[0];
+}
+function noInstall(e){
+  const s = `${e.from} ${e.name} ${e.vf||""}`;
+  if(/내장|설치 없음|아티팩트/.test(s)) return "설치 필요 없음 (내장 기능)";
+  if(/[a-z0-9-]+\.(club|io|com|so|dev|ninja|net|gallery|website)\b/i.test(e.from)) return "따로 설치 없음 · 사이트에서 바로 사용";
+  return "설치 명령 미확인 (저장소 README 참고)";
+}
+function skillCard(list, x){
+  x = x || {};
+  if(!list || !list.length) return `<div class="sk">${x.why?`<p class="sk-why">${esc(x.why)}</p>`:""}<p class="sk-none">이 항목은 따로 설치할 스킬이 아닙니다.</p>${x.go?`<a class="sk-go" href="${x.go}">워크플로에서 보기 →</a>`:""}</div>`;
+  const best = pickBest(list, x.ctx);
+  const inst = installFor([best, ...list.filter(e=>e!==best)]);
+  const steps = [...new Set([...list].sort((a,b)=>(a.track===b.track?0:a.track==="deck"?1:-1)||a.step-b.step).map(e=> e.track==="deck" ? "발표 "+DECKN[e.step] : SN[e.step]))];
+  const cmds = [...new Set((x.cmdList && x.cmdList.length ? x.cmdList : [best]).flatMap(e=>e.cmds))];
+  const go = x.go || (list[0].track==="deck" ? `#deck-step${list[0].step}` : `#step${list[0].step}`);
+  return `<div class="sk">`+
+    (x.why?`<p class="sk-why">${esc(x.why)}</p>`:"")+
+    (best.desc?`<p class="sk-desc">${esc(best.desc)}</p>`:"")+
+    (best.flag?`<p class="sk-flag">${esc(best.flag)}</p>`:"")+
+    (cmds.length?`<div class="sk-sec"><span class="sk-k">쓰는 법</span>${cmds.map(codeBox).join("")}</div>`:"")+
+    `<div class="sk-sec"><span class="sk-k">설치${inst&&!inst.self?` · ${esc(inst.via)}`:""}</span>${inst?inst.codes.map(codeBox).join(""):`<span class="sk-none">${esc(noInstall(best))}</span>`}</div>`+
+    `<div class="sk-meta"><span>${esc(best.from)}</span>${best.cost&&COST[best.cost]?`<span class="cost ${COST[best.cost][0]}">${COST[best.cost][1]}</span>`:""}<span>쓰는 단계: ${steps.join(" · ")}</span></div>`+
+    `<a class="sk-go" href="${go}">워크플로에서 보기 →</a></div>`;
+}
+function resolveRow(tool, cmd){
+  let cmdList = null;
+  for(const c of String(cmd).split(" · ")){ const l = findSkill(c); if(l){ cmdList = l; break; } }
+  const names = [tool, ...String(tool).split(/ · | \/ /)];
+  let nameList = [];
+  names.forEach(t=>{ const l = findSkill(t); if(l) nameList = nameList.concat(l); });
+  const all = [...new Set([...(cmdList||[]), ...nameList])];
+  return all.length ? {all, cmdList, names} : null;
+}
+
+/* ---------- 빠른 찾기: 단계별 묶음 + 한 줄 행 ---------- */
+const FG_HINT = {0:"무엇을 깔고 시작할까",1:"무엇을 왜 만들까",2:"어떻게 나누고 정할까",3:"만들 때",4:"확인하고 다듬을 때",5:"끝낸 뒤 · 영상 · 배포"};
+const UNRESOLVED = [];
+const fg = document.getElementById("fgroups");
+fg.innerHTML = [0,1,2,3,4,5].map(st=>`<details class="fg" data-s="${st}"><summary><b>${SN[st]}</b><span class="fg-h">${FG_HINT[st]}</span><span class="fg-c"></span></summary><div class="fg-list">${
+  rows.filter(r=>r[0]===st).map(([,l,q,tool,cmd,why])=>{
+    const r = resolveRow(tool,cmd); if(!r) UNRESOLVED.push(tool);
+    const go = l==="p" ? `#deck-step${st}` : `#step${st}`;
+    const ctx = {step:st, lane:l, names:r?r.names:[]};
+    return `<details class="fr" data-l="${l}"><summary><span class="q">${esc(q)}</span><span class="fr-s"><span class="lt ${l}">${LANEN[l]}</span>${esc(tool)}</span></summary>${skillCard(r?r.all:null,{why,go,ctx,cmdList:r?r.cmdList:null})}</details>`;
+  }).join("")}</div></details>`).join("");
+let F = {l:"all"};
+function apply(){
+  document.querySelectorAll("#lf button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.l===F.l?"true":"false"));
+  let total = 0;
+  fg.querySelectorAll(".fg").forEach(g=>{ let n = 0;
+    g.querySelectorAll(".fr").forEach(r=>{ const ok = F.l==="all" || r.dataset.l===F.l; r.hidden = !ok; if(ok) n++; });
+    g.hidden = n===0; g.querySelector(".fg-c").textContent = `${n}개`; total += n; });
+  document.getElementById("count").textContent = `${total}개 상황`;
+  document.getElementById("fempty").hidden = total>0;
+  try{ localStorage.setItem("skillBoardLane", F.l); }catch(e){}
+}
+document.querySelectorAll("#lf button").forEach(b=>b.addEventListener("click",()=>{ F.l = b.dataset.l; apply(); }));
+document.getElementById("freset").addEventListener("click",()=>{ F.l = "all"; apply(); });
+try{ const v = localStorage.getItem("skillBoardLane"); if(["all","c","u","p"].includes(v)) F.l = v; }catch(e){}
+apply();
+
+/* ---------- 정적 칩(md 카드, 세트)도 사전에 있으면 버튼으로 ---------- */
+function chipify(root){
+  root.querySelectorAll("span.cmd").forEach(sp=>{
+    if(sp.closest(".code, .trow, summary")) return;
+    const name = sp.textContent.trim(); if(!findSkill(name)) return;
+    const b = document.createElement("button"); b.type = "button"; b.className = sp.className+" chip"; b.dataset.skill = name; b.textContent = name; sp.replaceWith(b);
+  });
+}
+["#mdgrid","#combos",".ctxwrap"].forEach(sel=>{ const r = document.querySelector(sel); if(r) chipify(r); });
+
+/* ---------- 스킬 카드 창 ---------- */
+const dlg = document.getElementById("skdlg");
+let dlgFrom = null;
+document.addEventListener("click", e=>{
+  const chip = e.target.closest("button.chip"); if(!chip) return;
+  const name = chip.dataset.skill;
+  const direct = findSkill(name);
+  const rr = direct ? null : resolveRow(name,name);
+  const list = direct || (rr && rr.all);
+  const row = chip.closest(".sw-row");
+  let go = null, ctx = {names:[name]};
+  if(row){ const m = row.id.match(/^(d?)flow(\d)$/); if(m){ go = m[1] ? `#deck-step${m[2]}` : `#step${m[2]}`; ctx.step = +m[2]; ctx.lane = m[1] ? "p" : (chip.classList.contains("c") ? "c" : chip.classList.contains("u") ? "u" : null); } }
+  document.getElementById("skdlg-t").textContent = name;
+  document.getElementById("skdlg-b").innerHTML = skillCard(list,{go,ctx,cmdList:direct||(rr&&rr.cmdList)});
+  dlgFrom = chip;
+  if(dlg.showModal) dlg.showModal(); else dlg.setAttribute("open","");
+});
+function closeDlg(){ if(dlg.open){ if(dlg.close) dlg.close(); else dlg.removeAttribute("open"); } }
+dlg.addEventListener("close", ()=>{ if(dlgFrom) dlgFrom.focus(); });
+dlg.addEventListener("click", e=>{ if(e.target===dlg) closeDlg(); });
+document.getElementById("skdlg-x").addEventListener("click", closeDlg);
+document.addEventListener("click", e=>{
+  const a = e.target.closest("a.sk-go"); if(!a) return;
+  e.preventDefault(); const h = a.getAttribute("href"); dlgFrom = null; closeDlg();
+  if(location.hash === h) route(); else location.hash = h.slice(1);
+});
+
+
+document.addEventListener("click", e=>{
+  const btn = e.target.closest(".code button"); if(!btn) return;
+  const el = btn.previousElementSibling;
+  const fallback=()=>{ const r=document.createRange(); r.selectNodeContents(el); const s=getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent="선택됨"; };
+  try{ navigator.clipboard.writeText(el.textContent).then(()=>{ btn.textContent="복사됨"; setTimeout(()=>btn.textContent="복사",1500); }, fallback); }catch(err){ fallback(); }
+});
+
+/* ---------- Memory File 필터 ---------- */
+let MQ = {q:"", m:"all"};
+function mdApply(){
+  document.querySelectorAll("#mdf button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.m===MQ.m?"true":"false"));
+  const q = MQ.q.trim().toLowerCase(); let n = 0;
+  document.querySelectorAll("#mdgrid .mdc").forEach(c=>{ const ok = (MQ.m==="all"||c.dataset.st===MQ.m) && (!q || c.dataset.txt.includes(q)); c.hidden = !ok; if(ok) n++; });
+  document.getElementById("mdcount").textContent = `${n}개 파일`;
+  document.getElementById("mdempty").hidden = n>0;
+}
+document.getElementById("mdq").addEventListener("input", e=>{ MQ.q = e.target.value; mdApply(); });
+document.querySelectorAll("#mdf button").forEach(b=>b.addEventListener("click", ()=>{ MQ.m = b.dataset.m; mdApply(); }));
+mdApply();
+document.getElementById("mdreset").addEventListener("click", ()=>{ MQ = {q:"", m:"all"}; document.getElementById("mdq").value = ""; mdApply(); });
+
+/* ---------- 주제 탭 ---------- */
+const TABS = [...document.querySelectorAll("#tabs [role=tab]")];
+/* ---------- Memory File 소분류 ---------- */
+const MF_SUBS = ["law","find","ctx","tree"];
+function mfShow(s){
+  if(!MF_SUBS.includes(s)) s = "law";
+  document.querySelectorAll("#mfsub button").forEach(b=>{ const on = b.dataset.sub===s; b.setAttribute("aria-selected", on?"true":"false"); b.tabIndex = on?0:-1; });
+  MF_SUBS.forEach(x=>{ document.getElementById("mf-"+x).hidden = x!==s; });
+  try{ localStorage.setItem("skillBoardMfSub", s); }catch(e){}
+}
+document.querySelectorAll("#mfsub button").forEach(b=>{
+  b.addEventListener("click", ()=>mfShow(b.dataset.sub));
+  b.addEventListener("keydown", e=>{ if(e.key!=="ArrowRight" && e.key!=="ArrowLeft") return; const i = MF_SUBS.indexOf(b.dataset.sub); const n = MF_SUBS[(i+(e.key==="ArrowRight"?1:MF_SUBS.length-1))%MF_SUBS.length]; mfShow(n); document.getElementById("mfb-"+n).focus(); });
+});
+(function(){ let s = "law"; try{ s = localStorage.getItem("skillBoardMfSub") || "law"; }catch(e){} mfShow(s); })();
+function mfStick(){ const tb = document.querySelector(".tabbar"); const top = tb && getComputedStyle(tb).position==="sticky" ? tb.getBoundingClientRect().height : 0; document.getElementById("mfsub").style.setProperty("--subtop", top+"px"); }
+mfStick(); window.addEventListener("resize", mfStick);
+const NAMES = TABS.map(t=>t.dataset.tab);
+const TITLE = Object.fromEntries(TABS.map(t=>[t.dataset.tab, t.querySelector("b").textContent]));
+// 각 패널 끝에 이전/다음 주제 버튼
+NAMES.forEach((n,i)=>{
+  const p = document.getElementById(n);
+  const prev = NAMES[i-1], next = NAMES[i+1];
+  const d = document.createElement("div"); d.className = "pager";
+  d.innerHTML = (prev?`<button type="button" data-go="${prev}"><small>이전 주제</small>← ${TITLE[prev]}</button>`:"") +
+                (next?`<button type="button" class="next" data-go="${next}"><small>다음 주제</small>${TITLE[next]} →</button>`:"");
+  p.appendChild(d);
+});
+function showTab(name){
+  if(!NAMES.includes(name)) name = NAMES[0];
+  TABS.forEach(t=>{ const on = t.dataset.tab===name; t.setAttribute("aria-selected", on?"true":"false"); t.tabIndex = on?0:-1; });
+  NAMES.forEach(n=>{ document.getElementById(n).hidden = n!==name; });
+  const cur = TABS.find(t=>t.dataset.tab===name);
+  const bar = cur.parentElement; bar.scrollLeft = Math.max(0, cur.offsetLeft - bar.offsetLeft - 16);
+  return name;
+}
+function toTop(){ const bar = document.querySelector(".tabbar"); if(getComputedStyle(bar).position==="fixed"){ window.scrollTo(0,0); return; } const y = bar.offsetTop; if(window.scrollY > y) window.scrollTo(0, y); }
+function go(name){ showTab(name); toTop(); try{ if(location.hash !== "#"+name) location.hash = name; }catch(e){} }
+function openRow(id){ const el = document.getElementById(id); if(el){ el.open = true; el.closest(".sw-row").scrollIntoView(); } }
+document.querySelectorAll(".track button").forEach(b=>b.addEventListener("click", ()=>{
+  const t = b.dataset.track; setTrack(t);
+  try{ const h = t==="deck"?"deck":"workflow"; if(location.hash !== "#"+h) location.hash = h; }catch(e){}
+}));
+function route(){
+  const h = location.hash.slice(1);
+  const m = h.match(/^step(\d)$/);
+  if(m){ showTab("workflow"); setTrack("app"); openRow("step"+m[1]); return; }
+  const dm = h.match(/^deck-step(\d)$/);
+  if(dm){ showTab("workflow"); setTrack("deck"); openRow("dstep"+dm[1]); return; }
+  if(h==="deck" || h==="slides"){ showTab("workflow"); setTrack("deck"); return; }
+  if(h==="scale"){ showTab("combos"); return; }
+  if(h==="workflow" || h===""){ setTrack("app"); }
+  showTab(h);
+}
+TABS.forEach((t,i)=>{
+  t.addEventListener("click", ()=>go(t.dataset.tab));
+  t.addEventListener("keydown", e=>{
+    const k = e.key==="ArrowRight"?1:e.key==="ArrowLeft"?-1:0; if(!k) return;
+    e.preventDefault(); const nt = TABS[(i+k+TABS.length)%TABS.length]; nt.focus(); go(nt.dataset.tab);
+  });
+});
+document.addEventListener("click", e=>{ const b = e.target.closest("[data-go]"); if(b) go(b.dataset.go); });
+window.addEventListener("hashchange", route);
+route();
+</script>
+
+</body></html>
