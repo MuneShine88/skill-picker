@@ -321,6 +321,32 @@ dialog#skdlg::backdrop{background:rgba(10,12,16,.45)}
 .subtabs button[aria-selected="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
 .subtabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .mfpane{display:flex;flex-direction:column;gap:14px}
+/* 스킬 묶음 해설 */
+.pk-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.pk-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px}
+.pk-head h3{font-size:19px}
+.pk-head a{font-family:var(--f-mono);font-size:12.5px}
+.pk-kind{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:1px 9px;color:var(--muted)}
+.pk-one{margin:0;font-size:14.5px}
+.pk-cnt{margin:0;font-size:12.5px;color:var(--muted)}
+.pk-flowbox,.pk-inst{display:flex;flex-direction:column;gap:8px;background:var(--bg);border-radius:8px;padding:12px 14px}
+.pk-flowbox b,.pk-inst b{font-size:12.5px;color:var(--muted)}
+.pk-flow{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.pk-step{display:inline-flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:5px 9px;min-width:0}
+.pk-step code{font-family:var(--f-mono);font-size:12.5px;color:var(--accent);overflow-wrap:anywhere}
+.pk-step small{font-size:11.5px;color:var(--muted)}
+.pk-arrow{color:var(--muted)}
+.pk-grp h3{font-size:14px;margin:0 0 6px}
+.pk-grp h3 small{color:var(--muted);font-weight:400}
+.pk-grp ul{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.pk-grp li{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:12px;padding:9px 12px;border-bottom:1px solid var(--line);align-items:start}
+.pk-grp li:last-child{border-bottom:0}
+.pk-n{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-width:0}
+.pk-n code{font-family:var(--f-mono);font-size:12.5px;font-weight:600;overflow-wrap:anywhere}
+.pk-r{font-size:13.5px}
+.pk-on{font-size:10.5px;font-weight:700;color:var(--ok,#2E7D4F);border:1px solid currentColor;border-radius:999px;padding:0 6px;white-space:nowrap}
+@media (max-width:720px){.pk-grp li{grid-template-columns:1fr;gap:3px}.pk-card{padding:14px}}
+
 .law-h{font-size:16px;margin:6px 0 0}
 .where{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:8px}
 .wh{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
@@ -336,7 +362,7 @@ dialog#skdlg::backdrop{background:rgba(10,12,16,.45)}
   .wrap{padding-block:16px calc(96px + env(safe-area-inset-bottom,0px));gap:28px}
   .tabbar{position:fixed;left:0;right:0;bottom:0;top:auto;margin:0;z-index:20;border-top:1px solid var(--line);border-bottom:0;
     padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
-  .tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;overflow:visible;padding:0}
+  .tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;overflow:visible;padding:0}
   .tabs button{min-height:56px;align-items:center;justify-content:center;text-align:center;padding:6px 4px;border-radius:10px}
   .tabs button b{font-size:13px;line-height:1.25;word-break:keep-all}
   .tabs button small{display:none}
@@ -354,11 +380,12 @@ dialog#skdlg::backdrop{background:rgba(10,12,16,.45)}
 </style>
 
 <div class="wrap">
-<header class="hd"><h1>스킬 선택판</h1><span class="hd-meta">치트시트 · 2026-11-04 수정</span></header>
+<header class="hd"><h1>스킬 선택판</h1><span class="hd-meta">치트시트 · 2026-11-07 수정</span></header>
 
 <nav class="tabbar" aria-label="주제 선택"><div class="tabs" role="tablist" id="tabs">
   <button type="button" role="tab" id="tab-finder" data-tab="finder" aria-controls="finder"><b>빠른 찾기</b><small>상황 63개</small></button>
   <button type="button" role="tab" id="tab-workflow" data-tab="workflow" aria-controls="workflow"><b>워크플로</b><small>앱·웹 / 발표 · 스킬 상세</small></button>
+  <button type="button" role="tab" id="tab-packs" data-tab="packs" aria-controls="packs"><b>스킬 묶음</b><small>README 흐름 · 스킬별 역할</small></button>
   <button type="button" role="tab" id="tab-files" data-tab="files" aria-controls="files"><b>Memory File</b><small>Law · 찾기 · 맥락 스킬 · 파일 트리</small></button>
   <button type="button" role="tab" id="tab-combos" data-tab="combos" aria-controls="combos"><b>세트</b><small>규모별 · 조합 · 피할 것</small></button>
   <button type="button" role="tab" id="tab-sources" data-tab="sources" aria-controls="sources"><b>기준 · 출처</b><small>소개 · 한계 · 기록</small></button>
@@ -403,6 +430,16 @@ dialog#skdlg::backdrop{background:rgba(10,12,16,.45)}
       </ul></div>
   </div>
   </div>
+</section>
+
+<section class="panel" id="packs" role="tabpanel" aria-labelledby="tab-packs" hidden>
+  <div class="sec-head">
+    <h2>스킬 묶음 해설</h2>
+    <p class="lead">선택판에는 묶음마다 일부 스킬만 넣었습니다. 역할이 겹치는 스킬은 다른 스킬로 대신할 수 있어서 뺐습니다. 여기서는 각 묶음 저장소의 README와 스킬 설명(SKILL.md)을 바탕으로 <b>전체 흐름</b>과 <b>스킬별 역할</b>을 봅니다. <span class="pk-on">선택판</span> 표시가 붙은 스킬은 다른 탭에도 나옵니다.</p>
+  </div>
+  <div class="filters" role="group" aria-label="묶음 고르기" id="pkpick"></div>
+  <div id="pkbody"></div>
+  <p class="vf">2026-11-07 각 저장소 기본 브랜치 기준. 설명은 원문을 우리말로 옮겨 줄인 것이며, 스킬 이름과 명령은 원문 그대로입니다.</p>
 </section>
 
 <section class="panel" id="files" role="tabpanel" aria-labelledby="tab-files">
@@ -957,6 +994,8 @@ Task { id, title, assignee: string | null, dueDate?: string }</pre></details>
 </section>
 
 <section id="trimlog">
+  <div class="sec-head"><h2>2026-11-07 수정</h2>
+    <p class="lead"><b>스킬 묶음</b> 탭을 추가했습니다. Superpowers · gstack · pstack · Feature Dev · Spec Kit · Matt Pocock · Addy Osmani · Impeccable · Emil Kowalski 9개 묶음의 README와 SKILL.md를 확인해, 묶음별 전체 흐름과 스킬별 역할(선택판에서 뺀 스킬 포함)을 정리했습니다.</p></div>
   <div class="sec-head"><h2>2026-11-04 수정</h2>
     <p class="lead">워크플로에 <b>절차형 묶음 선택</b>을 추가해 한 흐름에 여러 묶음 명령이 섞이던 문제를 고쳤습니다 (Superpowers를 고르면 겹치는 grill-me 대신 brainstorming). 검증 단계 통과 조건을 묶음과 상관없이 쓸 수 있게 바꿨습니다. 빠른 찾기 카드가 상황과 다른 설명을 보여 주던 문제와 UI/UX Pro Max 출처 표시를 고쳤습니다. Vercel Agent Skills·shadcn/ui·Playwright 설치 명령을 채우고, 내장 기능과 웹 서비스는 "설치 필요 없음"으로 구분했습니다. md 치트시트 탭은 <b>Memory File</b>로 바꾸고 Law · 빠른 찾기 · 맥락 스킬 · 단계별 파일트리로 나눴습니다. Law에는 한컴테크 글과 Claude Code 공식 문서를 참고해, AGENTS.md를 WHAT·WHY·HOW·DONE 템플릿으로 바꾸고 settings.json(권한·훅)과 UI 폴더용 CLAUDE.md를 넣었습니다.</p></div>
   <div class="sec-head"><h2>무엇을 왜 줄였나</h2>
@@ -1620,6 +1659,368 @@ document.getElementById("mdreset").addEventListener("click", ()=>{ MQ = {q:"", m
 
 /* ---------- 주제 탭 ---------- */
 const TABS = [...document.querySelectorAll("#tabs [role=tab]")];
+/* ---------- 스킬 묶음 해설: 각 저장소 README와 SKILL.md 설명을 바탕으로 정리 (2026-11-07 확인) ---------- */
+const PACKS = [
+{id:"superpowers", key:"superpowers", board:"Superpowers", name:"Superpowers", repo:"obra/superpowers", kind:"절차형",
+ one:"만들기 전에 묻고, 계획을 쓰고, 서브에이전트로 구현하고, 리뷰로 막는 전 과정을 스킬이 자동으로 이끕니다. 스킬은 상황을 보고 알아서 켜지는 방식입니다.",
+ flow:[["brainstorming","질문으로 원하는 것을 끌어내 설계 합의"],["using-git-worktrees","분리된 작업 공간"],["writing-plans","2~5분짜리 작업 계획"],["subagent-driven-development","작업마다 서브에이전트 + 리뷰"],["test-driven-development","실패 테스트부터"],["requesting-code-review","작업 사이 리뷰"],["finishing-a-development-branch","병합·PR·정리"]],
+ groups:[
+  ["기본 흐름 (README 순서)",[
+   ["brainstorming","만들기 전에 질문으로 원하는 것과 이유를 끌어내고, 이해한 내용을 되짚어 확인. 작은 변경은 대화로, 큰 작업은 설계 문서로 합의"],
+   ["using-git-worktrees","설계가 승인되면 새 브랜치의 분리된 작업 공간을 만들고 테스트 기준선이 깨끗한지 확인"],
+   ["writing-plans","작업을 2~5분 단위로 쪼갠 계획. 작업마다 정확한 파일 경로, 코드, 검증 방법을 적음"],
+   ["subagent-driven-development","작업마다 새 서브에이전트에게 맡기고 끝날 때마다 리뷰 (가장 꼼꼼)"],
+   ["executing-plans","서브에이전트 없이 현재 세션에서 직접 전부 구현하고 끝에 한 번 리뷰 (가장 저렴)"],
+   ["test-driven-development","실패하는 테스트 작성 → 실패 확인 → 최소 코드 → 통과 → 커밋. 테스트 전에 쓴 코드는 지움"],
+   ["requesting-code-review","작업 사이마다 계획과 비교해 리뷰하고 심각도별로 보고. 치명적 문제는 진행을 막음"],
+   ["finishing-a-development-branch","작업이 끝나면 테스트를 확인하고 병합 / PR / 보관 / 폐기 중 선택, 작업 공간 정리"]]],
+  ["필요할 때 켜지는 스킬",[
+   ["systematic-debugging","버그나 테스트 실패를 만나면 고치기 전에 원인부터 체계적으로 추적"],
+   ["verification-before-completion","\"됐다\"고 말하기 전에 검증 명령을 실제로 돌려 결과로 증명"],
+   ["receiving-code-review","리뷰 의견을 무조건 따르지 않고 기술적으로 확인한 뒤 반영"],
+   ["dispatching-parallel-agents","서로 의존하지 않는 작업 2개 이상을 병렬 에이전트로 처리"]]],
+  ["관리용",[
+   ["using-superpowers","대화를 시작할 때 맞는 스킬을 먼저 찾아 쓰게 하는 규칙"],
+   ["writing-skills","새 스킬을 만들거나 고치고, 배포 전에 제대로 동작하는지 검증"],
+   ["diagnosing-superpowers","세션이 꼬였을 때(반복 작업, 계획 무시, 비용 과다) 기록을 읽고 원인을 줄 단위 증거로 보고"]]]]},
+
+{id:"gstack", key:"gstack", board:"gstack", name:"gstack", repo:"garrytan/gstack", kind:"절차형",
+ one:"Y Combinator의 Garry Tan이 쓰는 \"소프트웨어 공장\". 도구 모음이 아니라 스프린트 순서대로 도는 과정이고, 앞 스킬의 결과(설계 문서, 테스트 계획)를 다음 스킬이 읽습니다.",
+ flow:[["/office-hours","생각"],["/plan-ceo-review · /autoplan","계획"],["/verify","만들기"],["/review","리뷰"],["/qa","테스트"],["/ship","출시"],["/retro","회고"]],
+ groups:[
+  ["생각 · 계획",[
+   ["office-hours","시작점. 6가지 질문으로 제품 방향을 다시 따지고 대안을 내며 설계 문서를 씀. 이후 스킬들이 이 문서를 읽음"],
+   ["spec","막연한 의도를 5단계에 걸쳐 실행 가능한 스펙으로"],
+   ["plan-ceo-review","CEO 관점 리뷰: 요청 속에 숨은 '10점짜리 제품'을 찾음. 범위 확장 / 선택 확장 / 유지 / 축소 4가지 모드"],
+   ["plan-eng-review","엔지니어링 매니저 관점 리뷰: 아키텍처, 예외 상황, 실패 방식, 테스트 계획"],
+   ["plan-design-review","디자이너 관점 리뷰: 항목마다 0~10점을 매기고 10점의 모습을 설명한 뒤 계획을 고침. AI 티 검사 포함"],
+   ["plan-devex-review","개발자 경험(DX) 계획 리뷰: 사용 첫 성공까지의 시간, 막히는 지점, 에러 메시지 점검"],
+   ["autoplan","CEO · 디자인 · 엔지니어링 · DX 리뷰를 순서대로 자동 실행하고 원칙에 따라 스스로 결정"],
+   ["gstack-plan","만들기 전에 범위를 따지고 아키텍처·품질·테스트·성능을 리뷰해 실행 계획으로 마무리"]]],
+  ["디자인",[
+   ["design-consultation","제품과 시장을 조사해 디자인 시스템 전체(분위기, 글꼴, 색, 간격)를 제안하고 DESIGN.md를 씀"],
+   ["design-shotgun","AI 시안 4~6개를 만들어 비교판에 띄우고, 피드백을 받아 반복"],
+   ["design-html","고른 시안을 실제로 동작하는 HTML/CSS로 만듦"],
+   ["design-review","시각 불일치, 간격, 위계, AI 티, 느린 반응을 찾아 직접 고침 (전후 캡처 포함)"],
+   ["design-motion","확정된 화면을 MP4·GIF 반복 영상으로"]]],
+  ["만들기 · 리뷰 · 테스트",[
+   ["verify","타입 검사·린트·빌드·관련 테스트를 돌리고 초록불이 될 때까지 고친 뒤 /ship으로 넘김"],
+   ["review","CI는 통과하지만 운영에서 터질 버그를 찾고 명백한 것은 자동 수정. 약해진 테스트도 보고"],
+   ["gstack-review","병합 전 diff를 리뷰해 쉬운 건 고치고 나머지는 질문"],
+   ["qa","브라우저·API·CLI 동작을 직접 탐색해 버그를 재현하고, 실패 테스트를 쓰고, 원인을 고친 뒤 다시 확인"],
+   ["qa-only","코드는 건드리지 않고 재현 가능한 증거와 함께 버그만 보고"],
+   ["cso","보안 감사: 앱 구조를 모델링하고 근거 있는 취약점과 수정 후보를 제시"],
+   ["benchmark","페이지 로드 시간, Core Web Vitals, 리소스 크기의 기준선을 잡고 PR 전후 비교"],
+   ["health","코드 품질 현황판"],
+   ["devex-review","실제 문서와 시작 과정을 따라 해 보며 개발자 경험을 점검"],
+   ["deslop-shared-libs","최근 작업에서 공통 코드로 뺄 만한 후보를 근거와 함께 추천 (추천만)"]]],
+  ["출시 · 문서",[
+   ["ship","main과 동기화, 테스트, 변경 동작 탐색, 커버리지·문서 점검 후 푸시하고 PR 생성"],
+   ["land-and-deploy","PR 병합 → CI와 배포 대기 → 운영 상태 확인까지 한 번에"],
+   ["setup-deploy","/land-and-deploy가 쓸 배포 설정"],
+   ["canary","배포 후 콘솔 오류, 성능 저하, 페이지 실패를 계속 감시"],
+   ["document-release","출시할 때마다 바뀐 동작과 문서를 대조해 빠진 곳 표시"],
+   ["document-generate","없는 문서를 코드 조사 후 Diataxis 형식(참조·방법·튜토리얼·설명)으로 생성"],
+   ["modernize","오래된 PR을 최신 기준으로 올리고 유지 / 재작업 / 닫기를 판단"],
+   ["landing-report","출시 대기열 현황판 (읽기 전용)"]]],
+  ["회고 · 맥락",[
+   ["retro","주간 팀 회고: 사람별 기여, 출시 흐름, 테스트 건강도 추이"],
+   ["learn","프로젝트 교훈 관리"],
+   ["context-save","지금 작업 맥락을 저장"],
+   ["context-restore","/context-save로 저장한 맥락을 복원해 이어서 작업"]]],
+  ["안전장치",[
+   ["careful","위험한 명령을 실행하기 전에 경고"],
+   ["freeze","이번 세션에서 편집할 수 있는 폴더를 하나로 제한"],
+   ["unfreeze","/freeze 제한 해제"],
+   ["guard","careful + freeze를 함께 켜는 전체 안전 모드"]]],
+  ["브라우저 · 데이터",[
+   ["browse","실제 브라우저를 열어 읽고, 클릭하고, 캡처하고, 콘솔 오류 확인. 다른 브라우저 스킬의 기반"],
+   ["open-gstack-browser","AI가 조작하는 Chromium을 화면에 띄움"],
+   ["setup-browser-cookies","내 브라우저의 쿠키를 작업용 브라우저로 복사"],
+   ["pair-agent","다른 AI 에이전트와 같은 브라우저를 공유"],
+   ["scrape","로그인된 실제 세션으로 웹 페이지의 표·목록·가격 추출"],
+   ["skillify","성공한 /scrape 흐름을 영구 브라우저 스킬로 저장"]]],
+  ["기타 · 특수 환경",[
+   ["gstack","gstack 스킬 전체의 길잡이"],
+   ["gstack-upgrade","gstack 최신 버전으로 업데이트"],
+   ["write-skill","군더더기 없이 스킬을 새로 쓰거나 개선"],
+   ["codex","OpenAI Codex CLI 연동"],
+   ["diagram","설명이나 Mermaid를 다이어그램(편집 가능한 excalidraw 포함)으로"],
+   ["make-pdf","md 파일을 출판 품질 PDF로"],
+   ["plan-tune","질문 민감도를 내 성향에 맞게 조정"],
+   ["eval-plan","돈이 드는 평가를 미리 설계하고 무료 예행연습 후 소규모로 시험"],
+   ["benchmark-models","gstack 스킬을 여러 모델로 비교"],
+   ["captain","여러 코딩 에이전트를 한 컨트롤러에서 지휘하고 병합 관리"],
+   ["runaway-stopper","폭주하는 스레드·서브에이전트를 찾아 안전하게 멈춤"],
+   ["ubicloud","무거운 테스트·빌드를 임시 원격 VM에서 실행"],
+   ["setup-gbrain","코드 지식 DB(gbrain) 설치·연결"],
+   ["sync-gbrain","gbrain을 최신 코드로 갱신"],
+   ["hackernews-frontpage","Hacker News 첫 페이지 수집"],
+   ["ios-qa","실제 기기에서 SwiftUI 앱 QA (ios-design-review, ios-fix, ios-sync, ios-clean도 같은 iOS 전용 묶음)"],
+   ["gstack-openclaw-office-hours","OpenClaw 환경용 변형 (ceo-review, retro도 같음)"]]]]},
+
+{id:"pstack", key:"pstack", board:"pstack", name:"pstack", repo:"cursor/plugins (pstack)", kind:"절차형",
+ one:"Lauren Tan(poteto)의 작업 방식. 작업을 시작할 때 /poteto-mode 하나만 쓰면 요청을 읽고 23개 플레이북 중 하나를 골라 필요한 스킬을 차례로 실행합니다. 계획 전용 스킬은 일부러 없습니다 (\"최고의 스펙은 코드\").",
+ flow:[["setup-pstack","처음 한 번: 역할별 모델 설정"],["/poteto-mode","요청 → 플레이북 선택"],["architect · arena","설계·후보 비교"],["interrogate · blast-radius","적대적 검증"],["reflect","교훈을 스킬에 반영"]],
+ groups:[
+  ["시작",[
+   ["setup-pstack","역할별로 어떤 모델을 어느 추론 수준으로 쓸지 설정 (처음 한 번)"],
+   ["poteto-mode","주 진입점. 간결한 답, 의도적인 서브에이전트, 단순한 코드, 검증된 결과를 지향하며 플레이북을 실행"],
+   ["poteto-help","설치, /poteto-mode, 상황에 맞는 스킬·원칙 고르기 안내"],
+   ["automate-me","내 작업 스타일과 선호를 나만의 -mode 스킬로 만듦"]]],
+  ["설계 · 이해",[
+   ["architect","코드 전에 타입·함수 시그니처·모듈 구조를 스케치하고, 구현하는 동안 계속 관여"],
+   ["arena","같은 과제를 N개 후보로 병렬 생성 → 가장 나은 것을 바탕으로 나머지의 장점을 이식"],
+   ["statechart","상태가 바뀌는 시스템을 TLA+ 모델로 검증하고 Mermaid 상태도로 그림"],
+   ["figure-it-out","큰 마이그레이션처럼 맞는 플레이북이 없을 때 검토 가능한 진행 계획을 설계"],
+   ["sharpen","작업을 크게가 아니라 깊게 만들고 프롬프트를 다시 씀"],
+   ["how","\"X는 어떻게 동작하나\", \"이 코드는 어디에 둬야 하나\"에 답하는 코드 해설"],
+   ["why","\"왜 이렇게 됐나\": 설계 이유, 회귀 원인, 임계값의 근거를 조사"]]],
+  ["검증",[
+   ["interrogate","여러 모델로 코드를 공격적으로 리뷰해 맹점을 찾음"],
+   ["blast-radius","diff 밖에서 깨질 수 있는 곳을 찾고, 실제 코드를 돌려 안전한 근거를 증명"],
+   ["benchmark-checklist","성능 측정값을 보고하거나 근거로 쓰기 전에 측정 방식 자체를 점검"],
+   ["tdd","명시적으로 요청했거나 싸게 테스트할 대상이 분명할 때만 TDD"],
+   ["swarm","N개 작업자를 병렬로 풀어 넓게 탐색하고 보고서 하나로 정리"],
+   ["create-verification-skill","사용자처럼 앱을 조작해 검증하는 프로젝트 전용 스킬을 생성"],
+   ["maintain-verification-skill","검증 스킬과 기능 지도를 코드 변화에 맞게 주기적으로 갱신"],
+   ["create-formal-verification-skill","버그 비용이 크고 테스트가 닿기 어려운 곳을 형식 검증하는 스킬 생성"],
+   ["maintain-formal-verification-skill","코드가 바뀐 뒤 형식 검증 모델을 다시 맞춤"]]],
+  ["정리 · 학습",[
+   ["reflect","대화를 리뷰어 3명이 병렬로 검토해 교훈을 찾고, 기존 스킬의 구체적 수정으로 연결"],
+   ["correct","이 저장소에서 에이전트가 반복하는 실수를 구조 → 타입 → 린트 순으로 불가능하게 만듦"],
+   ["recall","대화 기록과 공유 기록에서 최근 작업 맥락을 복원"],
+   ["show-me-your-work","오래 걸리거나 무인으로 도는 작업의 결정 기록(무엇·왜·근거·결과)을 남김"],
+   ["no-comments","주석 검토 에이전트로 불필요한 주석을 찾아 정리"]]],
+  ["소통 · 글",[
+   ["ketchup","이번 대화에서 바뀐 것과 사용자 결정을 기다리는 항목을 쉬운 말로 요약"],
+   ["ketchup-video","ketchup 내용을 자막 슬라이드 영상으로"],
+   ["bro","방금 메시지를 전문용어 없이 다시 설명"],
+   ["in-your-own-words","사용자의 목표와 문제를 내 말로 다시 말해 이해를 확인"],
+   ["teach","how·why 결과를 엮어 작업 내용을 이해할 수 있게 설명"],
+   ["unslop","글에서 AI 티를 지움"],
+   ["technical-writing","기술 문서 작성 기준 (Diataxis 구조, 간결한 문장 규칙)"]]],
+  ["기타",[
+   ["typescript-best-practices",".ts/.tsx 파일을 읽거나 고칠 때의 TypeScript 기준"],
+   ["make-bot-ui","웹훅으로 봇을 깨우는 맞춤 UI 만들기"],
+   ["triage-issue-reports","Slack 버그 제보를 분류하고 중복 확인 후 티켓 생성"],
+   ["reproduce-and-fix-issues","분류된 버그를 재현하고 수정 초안 PR까지"],
+   ["setup-benny","버그 분류·재현 자동화(Benny) 설정"]]],
+  ["원칙 24개 (poteto-mode가 참조)",[
+   ["principle-laziness-protocol","가장 작은 변경, 지우는 쪽을 우선"],
+   ["principle-foundational-thinking","로직 전에 핵심 타입과 자료구조부터 바로잡기"],
+   ["principle-redesign-from-first-principles","새 요구사항을 덧붙이지 말고 처음부터 있었던 것처럼 다시 설계"],
+   ["principle-attack-the-premise","같은 전제의 수정이 두 번 실패하면 전제 자체를 검증"],
+   ["principle-subtract-before-you-add","더하기 전에 죽은 코드와 중복 검증부터 제거"],
+   ["principle-minimize-reader-load","읽는 사람이 따라가야 할 단계와 숨은 상태를 줄이기"],
+   ["principle-outcome-oriented-execution","마이그레이션은 임시 호환 코드 없이 목표 구조로 수렴"],
+   ["principle-experience-first","구현 편의보다 사용자 경험. 적게, 다듬어서"],
+   ["principle-exhaust-the-design-space","선례 없는 결정은 시제품 2~3개를 나란히 비교"],
+   ["principle-build-the-lever","손으로 하지 말고 그 일을 하거나 증명하는 도구(스크립트, codemod)를 만들기"],
+   ["principle-model-the-domain","흩어진 조건문 대신 도메인을 구조로 표현"],
+   ["principle-boundary-discipline","검증과 오류 처리는 시스템 경계(CLI, 설정, 네트워크)에 모으기"],
+   ["principle-type-system-discipline","불가능한 상태는 타입으로 표현 불가하게"],
+   ["principle-make-operations-idempotent","중간에 끊겨 다시 돌려도 같은 결과가 나오게"],
+   ["principle-migrate-callers-then-delete-legacy-apis","새 API로 옮기면 옛 API는 같은 단계에서 삭제"],
+   ["principle-separate-before-serializing-shared-state","공유 상태는 순서를 맞추기 전에 공유 자체를 없애기"],
+   ["principle-prove-it-works","끝내기 전에 실제 결과물로 검증 (\"컴파일됨\"은 증거 아님)"],
+   ["principle-fix-root-causes","증상이 처음 시작된 곳에서 고치기"],
+   ["principle-sequence-verifiable-units","여러 단계 작업은 각각 검증 가능한 작은 단위로"],
+   ["principle-test-behavior-not-implementation","테스트는 내부 구현이 아니라 사용자가 보는 동작을 확인"],
+   ["principle-explain-the-number","측정한 숫자를 믿기 전에 무엇이 그 숫자를 제한하는지 설명"],
+   ["principle-guard-the-context-window","큰 작업은 서브에이전트로, 메인에는 요약만"],
+   ["principle-never-block-on-the-human","되돌릴 수 있는 일은 묻지 말고 진행 후 결과를 보여 주기"],
+   ["principle-encode-lessons-in-structure","같은 지시를 두 번 쓰게 되면 린트·검사·스크립트로 만들기"]]]]},
+
+{id:"featuredev", key:"feature dev", board:"Feature Dev", name:"Feature Dev", repo:"anthropics/claude-plugins-official (feature-dev)", kind:"절차형",
+ one:"Anthropic 공식 플러그인. /feature-dev 명령 하나로 기존 코드베이스에 기능 하나를 7단계로 붙입니다. 코드를 바로 쓰지 않고 이해 → 질문 → 설계 → 구현 → 리뷰 순서를 강제합니다.",
+ flow:[["1 Discovery","무엇을 만들지"],["2 탐색","기존 코드"],["3 질문","빈칸 채우기"],["4 설계","방안 여러 개"],["5 구현",""],["6 리뷰","품질"],["7 요약","정리"]],
+ groups:[
+  ["명령 (7단계)",[
+   ["/feature-dev","① 요청을 명확히 하고 문제와 제약 확인 → ② code-explorer 2~3개로 비슷한 기능·구조 탐색 → ③ 빈칸을 질문으로 해소 → ④ code-architect로 구현 방안 여러 개 설계 → ⑤ 구현 → ⑥ code-reviewer로 단순성·중복·정확성 리뷰 → ⑦ 한 일을 요약"]]],
+  ["내부 에이전트",[
+   ["code-explorer","비슷한 기능을 찾아 구현을 따라가고, 아키텍처를 지도로 만들어 읽을 파일 목록을 돌려줌"],
+   ["code-architect","기존 패턴에 맞춘 구현 방안을 여러 개 설계하고 장단점 비교"],
+   ["code-reviewer","완성된 코드를 단순성, 중복(DRY), 기능 정확성 기준으로 리뷰"]]]]},
+
+{id:"speckit", key:"spec kit", board:"Spec Kit", name:"GitHub Spec Kit", repo:"github/spec-kit", kind:"절차형 (명세 주도 개발)",
+ one:"명세(spec)를 먼저 쓰고 그 명세에서 계획 → 작업 목록 → 구현이 나오게 하는 방식. 명령마다 정해진 문서(spec.md, plan.md, tasks.md)를 만들고 다음 명령이 그 문서를 읽습니다.",
+ flow:[["/speckit.constitution","원칙"],["/speckit.specify","명세"],["/speckit.clarify","질문"],["/speckit.plan","계획"],["/speckit.tasks","작업"],["/speckit.analyze","일관성"],["/speckit.implement","구현"],["/speckit.converge","남은 일"]],
+ groups:[
+  ["명령 9개 (실행 순서)",[
+   ["/speckit.constitution","프로젝트 원칙(constitution.md)을 만들거나 고침. 이후 모든 단계가 이 원칙을 따름"],
+   ["/speckit.specify","자연어 기능 설명으로 명세(spec.md)를 만들거나 고침"],
+   ["/speckit.clarify","명세에서 덜 정해진 곳을 최대 5개의 핵심 질문으로 찾아 답을 명세에 반영"],
+   ["/speckit.plan","계획 템플릿으로 설계 문서(plan.md, 데이터 모델, 계약 등) 생성"],
+   ["/speckit.tasks","설계 문서를 바탕으로 의존 순서가 정해진 작업 목록(tasks.md) 생성"],
+   ["/speckit.analyze","spec · plan · tasks 사이의 일관성과 품질을 수정 없이 점검"],
+   ["/speckit.checklist","요구사항 기준으로 이 기능 전용 체크리스트 생성 (필요할 때)"],
+   ["/speckit.implement","tasks.md의 작업을 차례로 실행해 구현"],
+   ["/speckit.converge","현재 코드와 명세·계획·작업을 대조해, 아직 안 만든 부분을 tasks.md에 새 작업으로 추가"]]]]},
+
+{id:"matt", key:"matt", board:"Matt Pocock", name:"Matt Pocock skills", repo:"mattpocock/skills", kind:"골라쓰기형",
+ one:"\"바이브 코딩이 아닌 진짜 엔지니어링용\" 작고 조합 가능한 스킬 모음. 과정을 통째로 소유하는 Spec Kit 같은 방식 대신, 필요한 것만 골라 씁니다. 사용자가 부르는 스킬이 흐름을 지휘하고, 모델이 알아서 쓰는 스킬이 규율을 담습니다.",
+ flow:[["/setup-matt-pocock-skills","저장소마다 한 번"],["/grill-with-docs","정렬 + 용어집·ADR"],["/to-spec","스펙"],["/to-tickets","티켓"],["/implement","tdd → code-review"],["/handoff · /retro","넘기기·회고"]],
+ groups:[
+  ["엔지니어링 · 직접 부르는 스킬",[
+   ["setup-matt-pocock-skills","저장소마다 처음 한 번. 이슈 트래커, 분류 라벨, 문서 위치를 설정 (다른 엔지니어링 스킬의 전제)"],
+   ["ask-matt","지금 상황에 맞는 스킬이나 흐름을 골라 주는 길잡이"],
+   ["grill-with-docs","계획을 끝까지 캐묻는 인터뷰. 그 과정에서 GLOSSARY.md(용어집)와 ADR(결정 기록)을 갱신. 가장 인기 있는 스킬"],
+   ["to-spec","지금까지 대화를 질문 없이 스펙으로 정리해 이슈 트래커에 올림"],
+   ["to-tickets","계획·스펙을 서로 막는 관계가 표시된 작은 티켓들로 쪼갬"],
+   ["implement","스펙·티켓대로 구현. 미리 정한 지점에서 tdd를 돌리고 code-review로 마감"],
+   ["implement-spec","스펙 전체를 한 브랜치에서 구현. 준비된 티켓을 서브에이전트로 동시에 처리"],
+   ["triage","이슈와 외부 PR을 분류 단계에 따라 옮기고, 확인·질문 후 에이전트용 작업 설명을 씀"],
+   ["improve-codebase-architecture","모듈을 깊게 만들 후보를 찾아 HTML 보고서로 보여 주고, 고른 것을 함께 캐물음 (며칠에 한 번 권장)"],
+   ["wayfinder","한 세션에 안 들어가는 큰 작업을 결정 티켓 지도로 만들어 하나씩 해결"],
+   ["retro","세션이 끝난 뒤 에이전트 환경(탐색, 자동 검사, 규칙 파일, 도구)의 개선점을 심각한 순으로 제안"]]],
+  ["엔지니어링 · 모델이 알아서 쓰는 스킬",[
+   ["tdd","실패 테스트 → 통과 → 정리(red-green-refactor)를 기능의 세로 조각 하나씩"],
+   ["diagnosing-bugs","어려운 버그·성능 저하 진단: 재현되는 실패 만들기 → 최소화 → 가설 → 계측 → 수정 → 회귀 테스트"],
+   ["code-review","기준 시점 이후 변경을 '코딩 규칙'과 '스펙 일치' 두 축으로 서브에이전트가 따로 리뷰"],
+   ["codebase-design","작은 인터페이스 뒤에 많은 동작을 숨기는 '깊은 모듈' 설계 어휘와 원칙"],
+   ["domain-modeling","용어를 GLOSSARY.md와 대조하고 예외 상황으로 시험해 도메인 모델을 다듬음"],
+   ["prototype","설계 질문에 답하려고 버릴 시제품을 만듦 (HTML 한 장, 또는 UI 변형 여러 개)"],
+   ["research","신뢰도 높은 1차 자료로 조사해 출처가 달린 md 파일로 저장 (백그라운드)"],
+   ["pr","PR 본문 형식: 변경을 보여 주는 요약, 동작 증거, 되돌리기 위험도"],
+   ["wizard","인프라·비밀키·외부 대시보드처럼 사람만 할 수 있는 단계를 안내하는 대화형 bash 스크립트 생성"]]],
+  ["생산성",[
+   ["grill-me","계획·설계를 모든 갈래가 정해질 때까지 캐묻는 인터뷰 (코드가 아닌 일에도)"],
+   ["grilling","grill-me, grill-with-docs, triage 등이 공통으로 쓰는 인터뷰 부품"],
+   ["handoff","지금 대화를 인수인계 문서로 압축해 다른 에이전트가 이어받게 함"],
+   ["teach","작업 폴더를 교실처럼 써서 여러 세션에 걸쳐 새 개념을 가르침"],
+   ["to-questionnaire","혼자 정할 수 없는 결정을 담당자가 채울 설문 md로 만듦"],
+   ["wait-what","방금 설명이 이해되지 않을 때 빠진 맥락을 채워 쉬운 말로 다시 설명"],
+   ["writing-for-agents","스킬, AGENTS.md / CLAUDE.md 같은 에이전트가 읽는 문서 쓰는 법"]]],
+  ["기타 도구",[
+   ["git-guardrails-claude-code","위험한 git 명령(push, reset --hard, clean 등)을 Claude Code 훅으로 미리 막음"],
+   ["setup-pre-commit","Husky + lint-staged로 커밋 전에 포맷·타입 검사·테스트"],
+   ["migrate-to-shoehorn","테스트의 as 타입 단언을 shoehorn 라이브러리로 바꿈"],
+   ["scaffold-exercises","강의용 연습문제 폴더 구조 생성"]]],
+  ["작업 중 (in-progress)",[
+   ["chief-of-staff","서브에이전트를 지휘해 한 세션에서 긴 목표를 끝까지 수행"],
+   ["claude-handoff","지금 대화를 새 백그라운드 에이전트에게 바로 넘겨 이어서 작업"],
+   ["loop-me","만들고 싶은 워크플로의 스펙을 캐물음"],
+   ["setup-ts-deep-modules","dependency-cruiser로 TypeScript 패키지 경계를 강제"],
+   ["software-factory","소프트웨어 공장(자동으로 도는 작업과 연결 서비스) 설계 어휘"],
+   ["writing-fragments","글쓰기 1단계: 구조 없이 재료 모으기 (writing-shape, writing-beats로 이어짐)"]]]]},
+
+{id:"addy", key:"addy", board:"Addy Osmani", name:"Addy Osmani agent-skills", repo:"addyosmani/agent-skills", kind:"골라쓰기형",
+ one:"개발 수명주기 6단계(정의 → 계획 → 구현 → 검증 → 리뷰 → 출시)에 맞춘 25개 스킬. 각 스킬에 단계별 절차, 검증 관문, 핑계 막기 표가 들어 있고, 하는 일에 맞춰 자동으로 켜집니다. 단계별 슬래시 명령도 있습니다.",
+ flow:[["/spec","정의"],["/plan","계획"],["/build","구현"],["/test","검증"],["/review","리뷰"],["/ship","출시"]],
+ groups:[
+  ["정의 · 무엇을 만들까",[
+   ["idea-refine","막연한 아이디어를 넓혔다가 좁히며 날카로운 개념으로"],
+   ["interview-me","한 번에 한 질문씩, 진짜 의도를 95% 확신할 때까지 인터뷰"],
+   ["spec-driven-development","코드 전에 목표·범위가 있는 스펙(PRD)부터 작성"],
+   ["constraint-driven-development","품질 기준을 문서 계약으로 정하고 에이전트가 몰래 낮추지 못하게 감시"]]],
+  ["계획",[
+   ["planning-and-task-breakdown","스펙을 순서가 있는 작은 작업으로 쪼갬"],
+   ["api-and-interface-design","안정적인 API와 모듈 경계·타입 계약 설계"],
+   ["context-engineering","규칙 파일과 맥락 구성을 최적화 (세션 시작, 품질이 떨어질 때)"]]],
+  ["구현",[
+   ["incremental-implementation","여러 파일에 걸친 변경을 검증 가능한 얇은 조각으로 나눠 전달"],
+   ["test-driven-development","테스트로 동작을 증명하며 구현"],
+   ["frontend-ui-engineering","접근성(WCAG)·반응형을 갖춘 실서비스 UI"],
+   ["source-driven-development","모든 구현 결정을 공식 문서에 근거"],
+   ["git-workflow-and-versioning","커밋·브랜치·충돌·PR을 깔끔한 단위로"],
+   ["doubt-driven-development","중요한 결정마다 새 맥락의 반대 검토를 거침"]]],
+  ["검증",[
+   ["browser-testing-with-devtools","Chrome DevTools MCP로 실제 브라우저에서 DOM·콘솔·네트워크·성능 확인"],
+   ["debugging-and-error-recovery","테스트 실패·빌드 깨짐·예상과 다른 동작의 근본 원인 디버깅"],
+   ["performance-optimization","측정 후 프론트·백엔드·쿼리 성능 개선"],
+   ["observability-and-instrumentation","로그·지표·추적·알림으로 운영 동작을 보이게"]]],
+  ["리뷰",[
+   ["code-review-and-quality","병합 전 여러 축의 코드 리뷰"],
+   ["code-simplification","동작은 그대로, 읽기 쉽게 정리"],
+   ["security-and-hardening","입력 처리·인증·데이터 저장을 OWASP 기준으로 보안 강화"],
+   ["documentation-and-adrs","설계 결정과 이유를 ADR과 문서로 기록"]]],
+  ["출시",[
+   ["shipping-and-launch","출시 전 체크리스트, 단계적 배포, 롤백, 모니터링"],
+   ["ci-cd-and-automation","CI/CD 파이프라인과 품질 관문 자동화"],
+   ["deprecation-and-migration","옛 시스템·API 제거와 사용자 이전"]]],
+  ["메타",[
+   ["using-agent-skills","지금 작업에 맞는 스킬을 찾고 공통 규칙을 정하는 기본 스킬"]]]]},
+
+{id:"impeccable", key:"impeccable", board:"Impeccable", name:"Impeccable", repo:"pbakaus/impeccable", kind:"UI 디자인",
+ one:"스킬 하나에 명령 24개. 프로젝트마다 한 번 init으로 PRODUCT.md를, document로 DESIGN.md를 만들면 이후 모든 명령이 그 파일을 읽습니다. 그다음 \"명령 + 대상\"으로 지시합니다 (예: /impeccable polish settings). 대상이 좁을수록 결과가 좋습니다.",
+ flow:[["init","PRODUCT.md"],["document","DESIGN.md"],["shape","코드 전 UX 계획"],["critique · audit","평가"],["bolder · quieter …","방향 조정"],["polish · harden","마무리"]],
+ groups:[
+  ["계획 · 설정",[
+   ["init","코드를 읽고 추론 못 하는 것만 물어 PRODUCT.md(누구를 위한 제품인지, 제약)를 씀. 프로젝트마다 한 번"],
+   ["document","지금 있는 시각 체계를 DESIGN.md로 기록해 이후 변경이 브랜드를 벗어나지 않게"],
+   ["shape","코드 전에 UX를 계획"],
+   ["extract","반복되는 패턴을 디자인 시스템으로 뽑아냄"]]],
+  ["평가",[
+   ["critique","점수가 매겨진 UX 리뷰"],
+   ["audit","기술적 품질 보고서 (별도 단축 명령 /audit도 제공)"]]],
+  ["방향 조정",[
+   ["bolder","너무 무난한 디자인을 과감하게"],["quieter","너무 시끄러운 디자인을 차분하게"],
+   ["distill","페이지에 필요 없는 것을 덜어냄"],["colorize","회색뿐인 화면에 색을"],
+   ["typeset","글꼴·위계·크기 정리"],["layout","간격과 리듬 정리"],
+   ["animate","전환과 상호작용 반응 추가"],["delight","개성 더하기"],
+   ["overdrive","셰이더, 스프링 물리, 스크롤 연동 효과까지"]]],
+  ["마무리",[
+   ["polish","출시 전 마지막 다듬기"],["harden","오류, 다국어, 넘침, 예외 상황 대응"],
+   ["clarify","불분명한 문구 고쳐 쓰기"],["adapt","화면 크기와 기기 대응"],
+   ["optimize","로딩·렌더링 성능"],["onboard","첫 실행 흐름과 빈 화면 설계"]]],
+  ["실시간 반복",[
+   ["live","브라우저에서 요소를 골라 변형을 바꿔 보고, 고른 것을 소스에 반영 (로컬 개발 서버 전용)"],
+   ["generate","이름 붙인 요소의 변형을 자동으로 생성"]]]]},
+
+{id:"emil", key:"emil", board:"Emil Kowalski skills", name:"Emil Kowalski skills", repo:"emilkowalski/skills", kind:"UI 움직임",
+ one:"Vercel·Linear에서 일한 디자인 엔지니어의 경험을 담은 스킬. 에이전트가 자주 하는 작은 실수(등장 애니메이션에 ease-in, 그림자 대신 실선 테두리 등)를 목록으로 만들어 바로잡습니다. 고정된 순서는 없고, 움직임을 찾고 → 만들고 → 검토하고 → 덜어내는 식으로 씁니다.",
+ flow:[["find-animation-opportunities","넣을 곳 찾기"],["animate · choreograph","만들기"],["review-animations","엄격한 검토"],["remove-animations","덜어내기"],["break-ui","최악의 데이터로 깨 보기"]],
+ groups:[
+  ["핵심",[
+   ["emil-design-eng","주 스킬. 대부분 애니메이션, 일부 디자인 조언 (UI 다듬기, 컴포넌트 설계, 보이지 않는 디테일)"],
+   ["find-animation-opportunities","움직임이 정말 도움이 될 곳을 정확한 값과 함께 제안하고, 움직이면 안 될 곳도 알려 줌 (읽기 전용)"],
+   ["animate","애니메이션을 처음부터: 움직여야 하는지 → 목적 → 도구 → 속성 → 곡선과 시간 → 중단 처리 순서로 결정"],
+   ["choreograph","여러 요소가 함께 움직일 때 무엇이 먼저, 얼마나 겹치고, 무엇이 가만히 있을지 결정"],
+   ["review-animations","Emil의 기준으로 애니메이션 코드를 엄격하게 리뷰 (기본값은 지적)"],
+   ["improve-animations","코드베이스 전체 애니메이션을 감사하고 다른 에이전트가 실행할 우선순위 계획을 만듦"],
+   ["remove-animations","필요 없는 움직임 제거: 키보드 동작, 자주 쓰는 화면, 장식뿐인 등장 효과"],
+   ["animation-performance","프레임이 끊기는 애니메이션의 원인을 찾아 고침"],
+   ["break-ui","긴 이름, 빈 목록, 큰 숫자, 이모지 같은 최악의 데이터로 UI를 깨 봄"]]],
+  ["참고 · 선택",[
+   ["animation-vocabulary","\"팝오버가 통통 튀는 그거\" 같은 설명을 정확한 용어로 바꿔 줌"],
+   ["apple-design","Apple의 인터페이스·유체 움직임 원칙을 웹용으로 정리"],
+   ["pick-ui-library","직접 만들지 말고 검증된 라이브러리를 고르게 함 (차트, 토스트, 드래그 등)"],
+   ["prototype","UI 조각을 여러 버전으로 만들어 전환기로 넘겨 보며 고름"],
+   ["mobile-native","웹앱이 휴대폰에서 앱처럼 느껴지게 하는 작은 수정 (100vh 버그, 탭 강조, 안전 영역)"]]],
+  ["특정 환경",[
+   ["animate-expo","React Native·Expo용 애니메이션"],
+   ["write-swift","최신 Swift 작성법"],
+   ["ask-sonner","Sonner 토스트 라이브러리 사용 안내"]]]]}
+];
+
+function pkOnBoard(name, key){
+  const l = findSkill(name) || findSkill("/"+name) || (key==="impeccable" ? findSkill("/impeccable "+name) : null);
+  if(!l) return false;
+  return l.some(e => (e.from+" "+e.name).toLowerCase().includes(key));
+}
+function pkRender(id){
+  const p = PACKS.find(x=>x.id===id) || PACKS[0];
+  document.querySelectorAll("#pkpick button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.pk===p.id?"true":"false"));
+  const all = p.groups.flatMap(g=>g[1]);
+  const onCnt = all.filter(([n])=>pkOnBoard(n,p.key)).length;
+  const inst = (()=>{ const l = findSkill(p.board); return l ? installFor(l) : null; })();
+  const flow = p.flow.map(([s,d],i)=>`${i?'<span class="pk-arrow" aria-hidden="true">→</span>':''}<span class="pk-step"><code>${esc(s)}</code>${d?`<small>${esc(d)}</small>`:''}</span>`).join("");
+  const groups = p.groups.map(([g,items])=>`<div class="pk-grp"><h3>${esc(g)} <small>${items.length}</small></h3><ul>${items.map(([n,r])=>`<li><span class="pk-n"><code>${esc(n)}</code>${pkOnBoard(n,p.key)?'<span class="pk-on">선택판</span>':''}</span><span class="pk-r">${esc(r)}</span></li>`).join("")}</ul></div>`).join("");
+  document.getElementById("pkbody").innerHTML = `<article class="pk-card">
+    <div class="pk-head"><h3>${esc(p.name)}</h3><span class="pk-kind">${esc(p.kind)}</span><a href="https://github.com/${esc(p.repo.split(" ")[0])}" target="_blank" rel="noopener">${esc(p.repo)}</a></div>
+    <p class="pk-one">${esc(p.one)}</p>
+    <p class="pk-cnt">이 해설의 스킬·명령 ${all.length}개 중 선택판 수록 ${onCnt}개</p>
+    <div class="pk-flowbox"><b>전체 흐름</b><div class="pk-flow">${flow}</div></div>
+    ${inst?`<div class="pk-inst"><b>설치</b>${inst.codes.map(codeBox).join("")}</div>`:''}
+    ${groups}
+  </article>`;
+  try{ localStorage.setItem("skillBoardPack2", p.id); }catch(e){}
+}
+document.getElementById("pkpick").innerHTML = PACKS.map(p=>`<button type="button" data-pk="${p.id}" aria-pressed="false">${esc(p.name.replace(/ skills| agent-skills|GitHub /g,""))}</button>`).join("");
+document.querySelectorAll("#pkpick button").forEach(b=>b.addEventListener("click",()=>pkRender(b.dataset.pk)));
+(function(){ let s = PACKS[0].id; try{ s = localStorage.getItem("skillBoardPack2") || s; }catch(e){} pkRender(s); })();
+
 /* ---------- Memory File 소분류 ---------- */
 const MF_SUBS = ["law","find","ctx","tree"];
 function mfShow(s){
